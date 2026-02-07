@@ -1,5 +1,9 @@
 # 作业上传系统 - 开发文档
 
+[![GitHub](https://img.shields.io/badge/GitHub-homeworkTrans-blue)](https://github.com/brisksea/homeworkTrans)
+
+**GitHub仓库:** https://github.com/brisksea/homeworkTrans
+
 ## 项目概述
 
 基于 Node.js + Express + SQLite 构建的学生作业上传管理系统，支持多教师、多班级管理，具备密码验证、文件上传、资源共享、批量下载等完整功能。
@@ -15,6 +19,27 @@
 | 密码加密 | bcryptjs |
 | 会话管理 | express-session |
 | Excel导出 | xlsx |
+
+---
+
+## 快速开始
+
+```bash
+# 克隆仓库
+git clone https://github.com/brisksea/homeworkTrans.git
+cd homeworkTrans
+
+# 安装依赖
+npm install
+
+# 启动服务
+npm start
+
+# 访问系统
+# 教师端: http://localhost:8080/teacher.html
+# 学生端: http://localhost:8080/student.html
+# 管理员: http://localhost:8080/admin.html
+```
 
 ---
 
@@ -520,11 +545,85 @@ const PORT = 8080;  // 修改此处
 
 ### 生产环境
 
+#### 使用PM2部署
+
 ```bash
-# 使用PM2
+# 安装PM2
+npm install -g pm2
+
+# 启动应用
 pm2 start server.js --name homework-system
+
+# 设置开机自启
 pm2 startup
 pm2 save
+
+# 常用命令
+pm2 status              # 查看状态
+pm2 logs homework-system # 查看日志
+pm2 restart homework-system # 重启
+pm2 stop homework-system    # 停止
+```
+
+#### 使用systemd部署
+
+```bash
+# 创建服务文件
+sudo nano /etc/systemd/system/homework.service
+```
+
+```ini
+[Unit]
+Description=Homework Upload System
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/homeworkTrans
+ExecStart=/usr/bin/node server.js
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# 启动服务
+sudo systemctl daemon-reload
+sudo systemctl enable homework
+sudo systemctl start homework
+```
+
+#### Nginx反向代理配置
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    client_max_body_size 100M;  # 上传文件大小限制
+
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+#### 环境变量配置
+
+```bash
+# 可选：设置环境变量
+export PORT=8080
+export SESSION_SECRET=your-secret-key
 ```
 
 ---
@@ -570,26 +669,41 @@ pm2 save
 
 ## 版本历史
 
+**v1.4.1** (2025年2月)
+- 共享码支持自定义（不限长度，仅限字母数字）
+- 共享界面优化：标题改为"资源共享"，按钮改为"共享"
+- 共享码默认随机生成并填入，教师可修改
+- 隐藏访问次数限制选项
+- 移除共享码6位限制
+- 共享访问页面支持大小写字母
+- 完善开发文档
+
 **v1.4.0** (2025年2月)
-- 页面结构重构（四大模块）
-- 文件浏览器界面
-- 资源共享增强
-- 自定义共享码
+- 页面结构重构（班级管理、作业管理、教学资源、资源共享四大模块）
+- 文件浏览器界面（目录导航、上传、新建文件夹、重命名、删除）
+- 资源共享增强（口令共享 + 班级共享统一管理）
+- 删除资源前检查关联共享
+- 自定义共享码功能
+- 文件上传保留原始文件名
 
 **v1.3.0** (2025年1月)
-- 作业编辑功能
-- 班级软删除
-- 时间本地化
+- 作业编辑功能（修改名称、密码、截止时间、描述）
+- 班级软删除（教师删除后进入历史记录，管理员可硬删除）
+- 时间本地化显示
 
 **v1.2.0** (2025年1月)
-- 临时作业功能
+- 临时作业功能（无需班级，学生无需验证学号）
 - 作业描述字段
-- 密码冲突检测
+- 密码冲突检测（防止不同教师使用相同密码）
 
 **v1.1.0** (2025年1月)
-- 管理员系统
-- 教师白名单
-- 批量下载优化
+- 管理员系统（查看所有教师、重置密码、硬删除班级）
+- 教师白名单注册验证
+- 批量下载优化（直接压缩目录）
 
 **v1.0.0** (2025年1月)
 - 基础功能实现
+- 多教师、多班级支持
+- 学生作业上传（密码验证、学号验证）
+- 文件自动重命名（学号_姓名.扩展名）
+- 批量下载ZIP
