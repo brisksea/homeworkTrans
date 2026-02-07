@@ -1172,12 +1172,12 @@
       showLogin();
     }
 
-    function showMainPage() {
+    async function showMainPage() {
       document.getElementById('loginPage').classList.add('hidden');
       document.getElementById('registerPage').classList.add('hidden');
       document.getElementById('mainPage').classList.remove('hidden');
       document.getElementById('teacherName').textContent = currentTeacher.name;
-      loadClasses();
+      await loadClasses();
       loadTempAssignments();
       loadShares();
       loadResources();
@@ -1413,6 +1413,7 @@
           alert('共享创建成功，班级学生登录后即可看到');
           closeModal('shareToClassModal');
           await loadClassShares(shareToClassId);
+          await loadAllClassShares();
         } else {
           alert('创建失败：' + data.message);
         }

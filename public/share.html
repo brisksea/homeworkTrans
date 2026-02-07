@@ -43,6 +43,19 @@
       font-size: 14px;
     }
 
+    .share-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin: 20px 0;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      word-break: break-all;
+    }
+
     .form-group {
       margin-bottom: 20px;
     }
@@ -429,8 +442,8 @@
 
     <!-- 共享信息显示界面 -->
     <div id="shareInfoSection" class="hidden">
-      <h1>共享内容</h1>
-      <p class="subtitle" id="shareTypeText"></p>
+      <h1 id="shareTitle">共享文件</h1>
+      <div class="share-name" id="shareNameDisplay"></div>
 
       <div id="successMessage" class="success-message hidden"></div>
 
@@ -443,24 +456,12 @@
       <!-- 共享信息 -->
       <div class="share-info">
         <div class="info-item">
-          <span class="info-label">共享类型</span>
-          <span class="info-value" id="shareType"></span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">创建者</span>
-          <span class="info-value" id="teacherName"></span>
-        </div>
-        <div class="info-item">
           <span class="info-label">访问次数</span>
           <span class="info-value" id="accessInfo"></span>
         </div>
-        <div class="info-item" id="expireItem" class="hidden">
+        <div class="info-item hidden" id="expireItem">
           <span class="info-label">过期时间</span>
           <span class="info-value" id="expireTime"></span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">状态</span>
-          <span class="info-value" id="shareStatus"></span>
         </div>
       </div>
 
@@ -550,19 +551,17 @@
 
     // 显示共享信息
     function displayShareInfo(share) {
-      // 共享类型
-      const shareTypeMap = {
-        'assignment': '作业文件',
-        'file': '单个文件',
-        'directory': '目录',
-        'multiple': '多个文件'
+      // 根据类型设置标题
+      const titleMap = {
+        'assignment': '共享作业',
+        'file': '共享文件',
+        'directory': '共享目录',
+        'multiple': '共享文件'
       };
-      const shareTypeText = shareTypeMap[share.shareType] || share.shareType;
-      document.getElementById('shareType').textContent = shareTypeText;
-      document.getElementById('shareTypeText').textContent = share.shareName || shareTypeText;
+      document.getElementById('shareTitle').textContent = titleMap[share.shareType] || '共享文件';
 
-      // 创建者
-      document.getElementById('teacherName').textContent = share.teacherName || '未知';
+      // 共享名称（醒目显示）
+      document.getElementById('shareNameDisplay').textContent = share.shareName || '未命名共享';
 
       // 访问次数
       const accessText = share.maxAccess > 0
@@ -576,10 +575,6 @@
         document.getElementById('expireTime').textContent = expireDate.toLocaleString('zh-CN');
         document.getElementById('expireItem').classList.remove('hidden');
       }
-
-      // 状态
-      let statusHtml = '<span class="status-badge status-active">有效</span>';
-      document.getElementById('shareStatus').innerHTML = statusHtml;
 
       // 描述
       if (share.description) {
