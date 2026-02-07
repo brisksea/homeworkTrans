@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生端 - 作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-input-wrapper input[type=file] {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      border: 2px dashed #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f8f9fa;
+    }
+
+    .file-input-label:hover {
+      border-color: #667eea;
+      background: #f0f0ff;
+    }
+
+    .file-input-label.has-file {
+      border-color: #28a745;
+      background: #d4edda;
+    }
+
+    .file-info {
+      text-align: center;
+      color: #666;
+    }
+
+    .file-icon {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .info-box {
+      background: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+    }
+
+    .info-box p {
+      margin: 5px 0;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .warning-box {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      color: #856404;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-link a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .modal-content p {
+      margin-bottom: 20px;
+      color: #666;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-buttons button {
+      flex: 1;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+  </style>
+</head>
+<body>
+  <!-- 密码验证页面 -->
+  <div id="verifyPage">
+    <div class="card">
+      <h1>作业上传</h1>
+      <p class="subtitle">请输入教师提供的上传密码</p>
+
+      <div class="form-group">
+        <label>上传密码</label>
+        <input type="password" id="uploadPassword" placeholder="请输入密码">
+      </div>
+
+      <button onclick="verifyPassword()">验证密码</button>
+    </div>
+  </div>
+
+  <!-- 文件上传页面 -->
+  <div id="uploadPage" class="hidden">
+    <div class="card">
+      <h1>上传作业</h1>
+      <p class="subtitle" id="assignmentInfo"></p>
+
+      <div class="info-box">
+        <p><strong>作业名称：</strong><span id="assignmentName"></span></p>
+        <p><strong>截止时间：</strong><span id="deadline"></span></p>
+        <div id="assignmentDescriptionBox" class="hidden" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #cce5ff;">
+          <p><strong>作业描述：</strong></p>
+          <p id="assignmentDescription" style="white-space: pre-wrap; margin-top: 5px;"></p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>学号</label>
+        <input type="text" id="studentId" placeholder="请输入您的学号" onblur="verifyStudentId()">
+      </div>
+
+      <div id="studentInfo" class="hidden" style="margin-bottom: 20px;">
+        <div class="info-box">
+          <p>✅ 学号验证通过</p>
+          <p><strong>姓名：</strong><span id="studentName"></span></p>
+        </div>
+      </div>
+
+      <div id="uploadHistory" class="hidden" style="margin-bottom: 20px;">
+        <div class="info-box" style="background: #f8f9fa; border-left-color: #6c757d;">
+          <p><strong>📋 我的上传历史：</strong></p>
+          <div id="uploadHistoryList" style="margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <div id="studentError" class="hidden" style="margin-bottom: 20px;">
+        <div class="warning-box">
+          <p>❌ <span id="studentErrorMsg"></span></p>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>选择文件</label>
+        <div class="file-input-wrapper">
+          <input type="file" id="fileInput" onchange="handleFileSelect(event)">
+          <label for="fileInput" class="file-input-label" id="fileLabel">
+            <div class="file-info">
+              <div class="file-icon">📁</div>
+              <div>点击选择文件或拖拽文件到此处</div>
+              <div style="font-size: 12px; color: #999; margin-top: 5px;" id="fileNamingHint">
+                文件将自动重命名为：学号_姓名.扩展名
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div id="selectedFileInfo" class="hidden" style="margin-bottom: 20px; color: #666; font-size: 14px;">
+        已选择：<strong id="selectedFileName"></strong>
+      </div>
+
+      <button onclick="uploadFile()" id="uploadBtn">上传作业</button>
+
+      <div class="back-link">
+        <a href="#" onclick="backToVerify()">返回密码验证</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentAssignment = null;
+    let selectedFile = null;
+    let isStudentIdVerified = false;
+    let currentStudentName = '';
+    let isTemp = false; // 是否为临时作业
+
+    async function verifyPassword() {
+      const password = document.getElementById('uploadPassword').value.trim();
+
+      if (!password) {
+        alert('请输入密码');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/student/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentAssignment = data.assignment;
+          isTemp = data.assignment.isTemp || false;
+          showUploadPage();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('网络错误，请重试');
+      }
+    }
+
+    function showUploadPage() {
+      document.getElementById('verifyPage').classList.add('hidden');
+      document.getElementById('uploadPage').classList.remove('hidden');
+
+      document.getElementById('assignmentName').textContent = currentAssignment.name;
+      document.getElementById('deadline').textContent = new Date(currentAssignment.deadline).toLocaleString('zh-CN');
+
+      // 显示作业描述（如果有）
+      if (currentAssignment.description) {
+        document.getElementById('assignmentDescription').textContent = currentAssignment.description;
+        document.getElementById('assignmentDescriptionBox').classList.remove('hidden');
+      } else {
+        document.getElementById('assignmentDescriptionBox').classList.add('hidden');
+      }
+
+      // 根据是否为临时作业显示不同的提示
+      const hintElement = document.getElementById('fileNamingHint');
+      if (isTemp) {
+        hintElement.textContent = '文件将自动重命名为：学号.扩展名';
+        hintElement.style.color = '#ff9800';
+      } else {
+        hintElement.textContent = '文件将自动重命名为：学号_姓名.扩展名';
+        hintElement.style.color = '#999';
+      }
+    }
+
+    function backToVerify() {
+      document.getElementById('uploadPage').classList.add('hidden');
+      document.getElementById('verifyPage').classList.remove('hidden');
+      document.getElementById('uploadPassword').value = '';
+      selectedFile = null;
+      isStudentIdVerified = false;
+      currentStudentName = '';
+      isTemp = false;
+      document.getElementById('studentId').value = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('selectedFileInfo').classList.add('hidden');
+      document.getElementById('studentInfo').classList.add('hidden');
+      document.getElementById('studentError').classList.add('hidden');
+      document.getElementById('fileLabel').classList.remove('has-file');
+    }
+
+    async function verifyStudentId() {
+      const studentId = document.getElementById('studentId').value.trim();
+
+      // 清除之前的验证信息
+      document.getElementById('studentInfo').classList.add('hidden');
+      document.getElementById('uploadHistory').classList.add('hidden');
+      document.getElementById('studentError').classList.add('hidden');
+      isStudentIdVerified = false;
+
+      if (!studentId) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/student/verify-student-id', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // 验证成功
+          isStudentIdVerified = true;
+          currentStudentName = data.student.name;
+
+          if (data.isTemp) {
+            // 临时作业
+            document.getElementById('studentName').textContent = '（临时作业，无需验证学号）';
+          } else {
+            document.getElementById('studentName').textContent = data.student.name;
+          }
+          document.getElementById('studentInfo').classList.remove('hidden');
+
+          // 显示上传历史
+          if (data.uploadHistory && data.uploadHistory.length > 0) {
+            const historyList = document.getElementById('uploadHistoryList');
+            historyList.innerHTML = '';
+
+            data.uploadHistory.forEach((upload, index) => {
+              const uploadDate = new Date(upload.upload_time).toLocaleString('zh-CN');
+              const displayFilename = upload.original_filename || upload.filename;
+              const historyItem = document.createElement('div');
+              historyItem.style.cssText = 'padding: 8px; margin-bottom: 8px; background: white; border-radius: 3px; border-left: 3px solid #28a745;';
+              historyItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>${index + 1}. ${displayFilename}</strong>
+                  </div>
+                  <div style="color: #666; font-size: 12px;">
+                    ${uploadDate}
+                  </div>
+                </div>
+              `;
+              historyList.appendChild(historyItem);
+            });
+
+            document.getElementById('uploadHistory').classList.remove('hidden');
+          } else {
+            const historyList = document.getElementById('uploadHistoryList');
+            historyList.innerHTML = '<p style="color: #999; font-size: 13px; margin: 0;">暂无上传记录</p>';
+            document.getElementById('uploadHistory').classList.remove('hidden');
+          }
+        } else {
+          // 验证失败
+          document.getElementById('studentErrorMsg').textContent = data.message;
+          document.getElementById('studentError').classList.remove('hidden');
+        }
+      } catch (error) {
+        document.getElementById('studentErrorMsg').textContent = '验证失败，请重试';
+        document.getElementById('studentError').classList.remove('hidden');
+      }
+    }
+
+    function handleFileSelect(event) {
+      selectedFile = event.target.files[0];
+
+      if (selectedFile) {
+        document.getElementById('selectedFileName').textContent = selectedFile.name;
+        document.getElementById('selectedFileInfo').classList.remove('hidden');
+        document.getElementById('fileLabel').classList.add('has-file');
+
+        const fileLabel = document.getElementById('fileLabel');
+        fileLabel.innerHTML = `
+          <div class="file-info">
+            <div class="file-icon">✅</div>
+            <div>${selectedFile.name}</div>
+            <div style="font-size: 12px; color: #28a745; margin-top: 5px;">
+              文件大小: ${(selectedFile.size / 1024).toFixed(2)} KB
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function uploadFile() {
+      const studentId = document.getElementById('studentId').value.trim();
+
+      if (!studentId) {
+        alert('请输入学号');
+        return;
+      }
+
+      // 检查学号是否已验证
+      if (!isStudentIdVerified) {
+        alert('请先验证学号');
+        await verifyStudentId();
+        if (!isStudentIdVerified) {
+          return;
+        }
+      }
+
+      if (!selectedFile) {
+        alert('请选择文件');
+        return;
+      }
+
+      // 直接上传，后端会自动覆盖旧文件
+      await performUpload(studentId);
+    }
+
+    async function performUpload(studentId) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('studentId', studentId);
+
+      const uploadBtn = document.getElementById('uploadBtn');
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = '上传中...';
+
+      try {
+        const response = await fetch('/api/student/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('✅ 上传成功！');
+
+          // 清空表单
+          selectedFile = null;
+          document.getElementById('fileInput').value = '';
+          document.getElementById('selectedFileInfo').classList.add('hidden');
+          document.getElementById('fileLabel').classList.remove('has-file');
+          document.getElementById('fileLabel').innerHTML = `
+            <div class="file-info">
+              <div class="file-icon">📁</div>
+              <div>点击选择文件或拖拽文件到此处</div>
+              <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                建议使用"学号.扩展名"命名
+              </div>
+            </div>
+          `;
+
+          // 刷新上传历史
+          await verifyStudentId();
+        } else {
+          alert('上传失败：' + data.message);
+        }
+      } catch (error) {
+        alert('上传失败，请重试');
+      } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = '上传作业';
+      }
+    }
+
+    // 支持拖拽上传
+    const fileLabel = document.getElementById('fileLabel');
+
+    fileLabel.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileLabel.style.borderColor = '#667eea';
+      fileLabel.style.background = '#f0f0ff';
+    });
+
+    fileLabel.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      fileLabel.style.borderColor = '#ddd';
+      fileLabel.style.background = '#f8f9fa';
+    });
+
+    fileLabel.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileLabel.style.borderColor = '#ddd';
+      fileLabel.style.background = '#f8f9fa';
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        document.getElementById('fileInput').files = files;
+        handleFileSelect({ target: { files: files } });
+      }
+    });
+  </script>
+</body>
+</html>

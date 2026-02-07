@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生门户 - 作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: #f5f6fa;
+      min-height: 100vh;
+    }
+
+    /* 登录页面样式 */
+    .login-wrapper {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .login-card h1 {
+      text-align: center;
+      color: #11998e;
+      margin-bottom: 25px;
+    }
+
+    /* 主布局 */
+    .main-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header h1 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-header p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 15px 0;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 25px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .menu-item.active {
+      background: rgba(255,255,255,0.15);
+      border-left-color: white;
+    }
+
+    .menu-item .icon {
+      font-size: 18px;
+      margin-right: 12px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-item .text {
+      font-size: 14px;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .user-class {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .sidebar-footer button {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .sidebar-footer button:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .content-header {
+      margin-bottom: 25px;
+    }
+
+    .content-header h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .content-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* 页面内容区域 */
+    .page-section {
+      display: none;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    /* 卡片样式 */
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    /* 表单样式 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #11998e;
+    }
+
+    /* 按钮样式 */
+    button {
+      background: #11998e;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #0d7d74;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.secondary:hover {
+      background: #5a6268;
+    }
+
+    button.danger {
+      background: #dc3545;
+    }
+
+    button.danger:hover {
+      background: #c82333;
+    }
+
+    /* 表格样式 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    /* 状态标签 */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-info {
+      background: #cce5ff;
+      color: #004085;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    /* 资源卡片 */
+    .resource-card {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 4px solid #11998e;
+    }
+
+    .resource-card .icon {
+      font-size: 32px;
+      margin-right: 15px;
+    }
+
+    .resource-card .info {
+      flex: 1;
+    }
+
+    .resource-card .info h4 {
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .resource-card .info p {
+      font-size: 13px;
+      color: #666;
+      margin: 0;
+    }
+
+    .resource-card button {
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 上传区域 */
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upload-area:hover {
+      border-color: #11998e;
+      background: #f8fffd;
+    }
+
+    .upload-area.dragover {
+      border-color: #11998e;
+      background: #e8fff9;
+    }
+
+    .upload-area .icon {
+      font-size: 48px;
+      color: #11998e;
+      margin-bottom: 15px;
+    }
+
+    .upload-area p {
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .upload-area small {
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div id="loginPage">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <h1>学生登录</h1>
+        <div class="form-group">
+          <label>学号</label>
+          <input type="text" id="loginStudentId" placeholder="请输入学号">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="loginPassword" placeholder="请输入密码">
+        </div>
+        <button onclick="login()" style="width: 100%;">登录</button>
+        <p style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+          <a href="/student.html" style="color: #11998e;">使用上传密码直接上传</a>
+        </p>
+        <p style="text-align: center; margin-top: 10px;">
+          <a href="/" style="color: #666; font-size: 14px;">返回首页</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主页面 -->
+  <div id="mainPage" class="hidden">
+    <div class="main-layout">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h1>学生门户</h1>
+          <p>作业上传管理平台</p>
+        </div>
+
+        <div class="sidebar-menu">
+          <div class="menu-item active" onclick="switchPage('assignments')">
+            <span class="icon">&#x1F4DD;</span>
+            <span class="text">我的作业</span>
+          </div>
+          <div class="menu-item" onclick="switchPage('shares')">
+            <span class="icon">&#x1F4DA;</span>
+            <span class="text">共享资源</span>
+          </div>
+          <div class="menu-item" onclick="switchPage('uploads')">
+            <span class="icon">&#x1F4C1;</span>
+            <span class="text">我的上传</span>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar">&#x1F468;&#x200D;&#x1F393;</div>
+            <div>
+              <div class="user-name" id="studentName"></div>
+              <div class="user-class" id="studentClass"></div>
+            </div>
+          </div>
+          <button onclick="showChangePasswordModal()">修改密码</button>
+          <button onclick="logout()" style="margin-top: 8px; background: rgba(220,53,69,0.3);">退出登录</button>
+        </div>
+      </div>
+
+      <!-- 主内容区域 -->
+      <div class="main-content">
+
+        <!-- 1. 我的作业页面 -->
+        <div id="page-assignments" class="page-section active">
+          <div class="content-header">
+            <h2>我的作业</h2>
+            <p>查看和提交班级作业</p>
+          </div>
+
+          <div id="assignmentsList"></div>
+        </div>
+
+        <!-- 2. 共享资源页面 -->
+        <div id="page-shares" class="page-section">
+          <div class="content-header">
+            <h2>共享资源</h2>
+            <p>教师共享的学习资料</p>
+          </div>
+
+          <div id="sharesList"></div>
+        </div>
+
+        <!-- 3. 我的上传页面 -->
+        <div id="page-uploads" class="page-section">
+          <div class="content-header">
+            <h2>我的上传</h2>
+            <p>查看已上传的文件</p>
+          </div>
+
+          <div id="uploadsList"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 修改密码模态框 -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <h2>修改密码</h2>
+      <div class="form-group">
+        <label>原密码</label>
+        <input type="password" id="oldPassword" placeholder="请输入原密码">
+      </div>
+      <div class="form-group">
+        <label>新密码</label>
+        <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input type="password" id="confirmPassword" placeholder="请再次输入新密码">
+      </div>
+      <button onclick="changePassword()">确认修改</button>
+      <button onclick="closeModal('changePasswordModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 上传作业模态框 -->
+  <div id="uploadModal" class="modal">
+    <div class="modal-content">
+      <h2 id="uploadModalTitle">上传作业</h2>
+      <input type="hidden" id="uploadAssignmentId">
+      <div class="form-group">
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('uploadFile').click()">
+          <div class="icon">&#x1F4E4;</div>
+          <p>点击或拖拽文件到此处</p>
+          <small id="uploadFileName">支持各种文件格式</small>
+        </div>
+        <input type="file" id="uploadFile" style="display: none;" onchange="handleFileSelect(this)">
+      </div>
+      <button onclick="uploadFile()">上传</button>
+      <button onclick="closeModal('uploadModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <script>
+    let currentStudent = null;
+
+    // 页面加载时检查登录状态
+    window.onload = async function() {
+      const response = await fetch('/api/student/check-login');
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        currentStudent = data.student;
+        showMainPage();
+      }
+    };
+
+    // 登录
+    async function login() {
+      const studentId = document.getElementById('loginStudentId').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!studentId || !password) {
+        alert('请输入学号和密码');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/student/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId, password })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentStudent = data.student;
+          showMainPage();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('登录失败:', error);
+        alert('登录失败，请稍后重试');
+      }
+    }
+
+    // 登出
+    async function logout() {
+      await fetch('/api/student/logout', { method: 'POST' });
+      currentStudent = null;
+      document.getElementById('mainPage').classList.add('hidden');
+      document.getElementById('loginPage').classList.remove('hidden');
+    }
+
+    // 显示主页面
+    function showMainPage() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('mainPage').classList.remove('hidden');
+      document.getElementById('studentName').textContent = currentStudent.name;
+      document.getElementById('studentClass').textContent = currentStudent.className;
+
+      loadAssignments();
+      loadShares();
+      loadUploads();
+    }
+
+    // 切换页面
+    function switchPage(pageName) {
+      document.querySelectorAll('.page-section').forEach(page => {
+        page.classList.remove('active');
+      });
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      document.getElementById(`page-${pageName}`).classList.add('active');
+      event.currentTarget.classList.add('active');
+    }
+
+    // 加载作业列表
+    async function loadAssignments() {
+      try {
+        const response = await fetch('/api/student/assignments');
+        const data = await response.json();
+
+        if (data.success) {
+          displayAssignments(data.assignments);
+        }
+      } catch (error) {
+        console.error('加载作业失败:', error);
+      }
+    }
+
+    // 显示作业列表
+    function displayAssignments(assignments) {
+      const container = document.getElementById('assignmentsList');
+
+      if (assignments.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F4DD;</div>
+            <p>暂无作业任务</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>作业名称</th>
+              <th>截止时间</th>
+              <th>状态</th>
+              <th>提交状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assignments.map(a => {
+              const isExpired = new Date(a.deadline) < new Date();
+              const isUploaded = a.uploaded > 0;
+
+              return `
+                <tr>
+                  <td>
+                    <strong>${a.assignment_name}</strong>
+                    ${a.description ? `<br><small style="color: #666;">${a.description}</small>` : ''}
+                  </td>
+                  <td>${new Date(a.deadline).toLocaleString('zh-CN')}</td>
+                  <td>
+                    <span class="status-badge ${isExpired ? 'status-warning' : 'status-success'}">
+                      ${isExpired ? '已截止' : '进行中'}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge ${isUploaded ? 'status-info' : 'status-danger'}">
+                      ${isUploaded ? '已提交' : '未提交'}
+                    </span>
+                  </td>
+                  <td>
+                    ${!isExpired ? `<button onclick="showUploadModal(${a.id}, '${a.assignment_name}')">上传作业</button>` : ''}
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 加载共享资源
+    async function loadShares() {
+      try {
+        const response = await fetch('/api/student/class-shares');
+        const data = await response.json();
+
+        if (data.success) {
+          displayShares(data.shares);
+        }
+      } catch (error) {
+        console.error('加载共享资源失败:', error);
+      }
+    }
+
+    // 显示共享资源
+    function displayShares(shares) {
+      const container = document.getElementById('sharesList');
+
+      if (shares.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F4DA;</div>
+            <p>暂无共享资源</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = shares.map(share => {
+        const icon = share.share_type === 'directory' ? '&#x1F4C1;' : '&#x1F4C4;';
+        return `
+          <div class="resource-card">
+            <div class="icon">${icon}</div>
+            <div class="info">
+              <h4>${share.share_name}</h4>
+              <p>${share.description || '无描述'} - 来自 ${share.teacher_name}</p>
+              <p style="font-size: 12px; color: #999;">共享于 ${new Date(share.created_at).toLocaleString('zh-CN')}</p>
+            </div>
+            <button onclick="downloadShare(${share.id})">下载</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 加载我的上传
+    async function loadUploads() {
+      try {
+        const response = await fetch('/api/student/my-uploads');
+        const data = await response.json();
+
+        if (data.success) {
+          displayUploads(data.uploads);
+        }
+      } catch (error) {
+        console.error('加载上传记录失败:', error);
+      }
+    }
+
+    // 显示我的上传
+    function displayUploads(uploads) {
+      const container = document.getElementById('uploadsList');
+
+      if (uploads.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F4C1;</div>
+            <p>暂无上传记录</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>文件名</th>
+              <th>作业名称</th>
+              <th>上传时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${uploads.map(u => `
+              <tr>
+                <td>${u.original_filename || u.filename}</td>
+                <td>${u.assignment_name}</td>
+                <td>${new Date(u.upload_time).toLocaleString('zh-CN')}</td>
+                <td>
+                  <button onclick="downloadMyUpload(${u.id})">下载</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 显示上传模态框
+    function showUploadModal(assignmentId, assignmentName) {
+      document.getElementById('uploadAssignmentId').value = assignmentId;
+      document.getElementById('uploadModalTitle').textContent = `上传作业 - ${assignmentName}`;
+      document.getElementById('uploadFileName').textContent = '支持各种文件格式';
+      document.getElementById('uploadFile').value = '';
+      document.getElementById('uploadModal').classList.add('active');
+    }
+
+    // 处理文件选择
+    function handleFileSelect(input) {
+      if (input.files.length > 0) {
+        document.getElementById('uploadFileName').textContent = input.files[0].name;
+      }
+    }
+
+    // 上传文件
+    async function uploadFile() {
+      const assignmentId = document.getElementById('uploadAssignmentId').value;
+      const fileInput = document.getElementById('uploadFile');
+
+      if (!fileInput.files.length) {
+        alert('请选择文件');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('assignmentId', assignmentId);
+      formData.append('file', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/api/student/upload-assignment', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('上传成功');
+          closeModal('uploadModal');
+          loadAssignments();
+          loadUploads();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('上传失败:', error);
+        alert('上传失败，请稍后重试');
+      }
+    }
+
+    // 下载共享资源
+    function downloadShare(shareId) {
+      window.location.href = `/api/student/download-class-share/${shareId}`;
+    }
+
+    // 下载我的上传
+    function downloadMyUpload(uploadId) {
+      window.location.href = `/api/student/download-my-upload/${uploadId}`;
+    }
+
+    // 显示修改密码模态框
+    function showChangePasswordModal() {
+      document.getElementById('oldPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+      document.getElementById('changePasswordModal').classList.add('active');
+    }
+
+    // 修改密码
+    async function changePassword() {
+      const oldPassword = document.getElementById('oldPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (!oldPassword || !newPassword) {
+        alert('请输入原密码和新密码');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert('两次输入的新密码不一致');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        alert('新密码至少6位');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/student/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('密码修改成功');
+          closeModal('changePasswordModal');
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('修改密码失败:', error);
+        alert('修改失败，请稍后重试');
+      }
+    }
+
+    // 关闭模态框
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // 拖拽上传
+    const uploadArea = document.getElementById('uploadArea');
+    if (uploadArea) {
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          document.getElementById('uploadFile').files = files;
+          document.getElementById('uploadFileName').textContent = files[0].name;
+        }
+      });
+    }
+
+    // 回车登录
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        login();
+      }
+    });
+  </script>
+</body>
+</html>

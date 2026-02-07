@@ -1,0 +1,3345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>教师端 - 作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: #f5f6fa;
+      min-height: 100vh;
+    }
+
+    /* 登录页面样式 */
+    .login-wrapper {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    /* 主布局 */
+    .main-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* 侧边栏 */
+    .sidebar {
+      width: 240px;
+      background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      padding: 25px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .sidebar-header h1 {
+      font-size: 20px;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-header p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .sidebar-menu {
+      flex: 1;
+      padding: 15px 0;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 14px 25px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .menu-item.active {
+      background: rgba(255,255,255,0.15);
+      border-left-color: white;
+    }
+
+    .menu-item .icon {
+      font-size: 18px;
+      margin-right: 12px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .menu-item .text {
+      font-size: 14px;
+    }
+
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .sidebar-footer button {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .sidebar-footer button:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* 主内容区 */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .content-header {
+      margin-bottom: 25px;
+    }
+
+    .content-header h2 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .content-header p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* 页面内容区域 */
+    .page-section {
+      display: none;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    /* 卡片样式 */
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .card-header h3 {
+      font-size: 16px;
+      color: #333;
+    }
+
+    /* 表单样式 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    /* 按钮样式 */
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.secondary:hover {
+      background: #5a6268;
+    }
+
+    button.danger {
+      background: #dc3545;
+    }
+
+    button.danger:hover {
+      background: #c82333;
+    }
+
+    button.success {
+      background: #28a745;
+    }
+
+    button.success:hover {
+      background: #218838;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* 提示框 */
+    .info-box {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+
+    .info-box.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .info-box.info {
+      background: #e7f3ff;
+      color: #0c5460;
+    }
+
+    .info-box.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    /* 表格样式 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+      font-size: 13px;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    /* 状态标签 */
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    /* 班级项样式 */
+    .class-item {
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .class-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .class-info h3 {
+      margin-bottom: 5px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .class-info p {
+      color: #666;
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .class-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .class-actions button {
+      padding: 8px 14px;
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .class-content {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    .class-content.hidden {
+      display: none;
+    }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-content h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* 空状态 */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    /* 资源/共享列表项 */
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .list-item .item-icon {
+      font-size: 24px;
+      margin-right: 15px;
+    }
+
+    .list-item .item-info {
+      flex: 1;
+    }
+
+    .list-item .item-info h4 {
+      font-size: 15px;
+      margin-bottom: 4px;
+      color: #333;
+    }
+
+    .list-item .item-info p {
+      font-size: 13px;
+      color: #666;
+      margin: 0;
+    }
+
+    .list-item .item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .list-item .item-actions button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* 快捷操作栏 */
+    .quick-actions {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: white;
+      border: 2px solid #667eea;
+      color: #667eea;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .quick-action-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .quick-action-btn .icon {
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div id="loginPage">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <h1 style="text-align: center; color: #667eea; margin-bottom: 25px;">教师登录</h1>
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="loginUsername" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="loginPassword" placeholder="请输入密码">
+        </div>
+        <button onclick="login()" style="width: 100%;">登录</button>
+        <button onclick="showRegister()" style="width: 100%; margin-top: 10px;" class="secondary">注册新账号</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 注册页面 -->
+  <div id="registerPage" class="hidden">
+    <div class="login-wrapper">
+      <div class="login-card">
+        <h1 style="text-align: center; color: #667eea; margin-bottom: 25px;">教师注册</h1>
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="registerUsername" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="registerPassword" placeholder="请输入密码">
+        </div>
+        <div class="form-group">
+          <label>姓名</label>
+          <input type="text" id="registerName" placeholder="请输入真实姓名">
+        </div>
+        <button onclick="register()" style="width: 100%;">注册</button>
+        <button onclick="showLogin()" style="width: 100%; margin-top: 10px;" class="secondary">返回登录</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主页面 -->
+  <div id="mainPage" class="hidden">
+    <div class="main-layout">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h1>教师管理系统</h1>
+          <p>作业上传管理平台</p>
+        </div>
+
+        <div class="sidebar-menu">
+          <div class="menu-item active" onclick="switchPage('classManage')">
+            <span class="icon">&#x1F3EB;</span>
+            <span class="text">班级管理</span>
+          </div>
+          <div class="menu-item" onclick="switchPage('assignments')">
+            <span class="icon">&#x1F4DD;</span>
+            <span class="text">作业管理</span>
+          </div>
+          <div class="menu-item" onclick="switchPage('resources')">
+            <span class="icon">&#x1F4DA;</span>
+            <span class="text">教学资源</span>
+          </div>
+          <div class="menu-item" onclick="switchPage('shares')">
+            <span class="icon">&#x1F517;</span>
+            <span class="text">资源共享</span>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <div class="user-avatar">&#x1F468;&#x200D;&#x1F3EB;</div>
+            <span class="user-name" id="teacherName"></span>
+          </div>
+          <button onclick="showChangePasswordModal()">修改密码</button>
+          <button onclick="logout()" style="margin-top: 8px; background: rgba(220,53,69,0.3);">退出登录</button>
+        </div>
+      </div>
+
+      <!-- 主内容区域 -->
+      <div class="main-content">
+
+        <!-- 1. 班级管理页面 -->
+        <div id="page-classManage" class="page-section active">
+          <div class="content-header">
+            <h2>班级管理</h2>
+            <p>创建和管理班级、学生信息</p>
+          </div>
+
+          <div class="quick-actions">
+            <button class="quick-action-btn" onclick="showCreateClassModal()">
+              <span class="icon">+</span> 创建班级
+            </button>
+          </div>
+
+          <div id="classesList"></div>
+        </div>
+
+        <!-- 2. 作业管理页面 -->
+        <div id="page-assignments" class="page-section">
+          <div class="content-header">
+            <h2>作业管理</h2>
+            <p>管理班级作业和临时作业</p>
+          </div>
+
+          <!-- 班级作业区块 -->
+          <div class="section-block" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 15px; color: #333;">班级作业</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center;">
+              <select id="classSelectForAssignment" onchange="loadClassAssignments()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 5px; min-width: 200px;">
+                <option value="">选择班级...</option>
+              </select>
+              <button onclick="showCreateAssignmentModalNew()" class="quick-action-btn" style="white-space: nowrap;">
+                <span class="icon">+</span> 创建班级作业
+              </button>
+            </div>
+            <div id="classAssignmentsList"></div>
+          </div>
+
+          <!-- 临时作业区块 -->
+          <div class="section-block" style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 15px; color: #333;">临时作业</h3>
+            <div class="info-box warning">
+              临时作业无需绑定班级，学生上传时无需验证学号，文件命名为"学号.扩展名"。
+            </div>
+            <div class="quick-actions" style="margin-bottom: 15px;">
+              <button class="quick-action-btn" onclick="showCreateTempAssignmentModal()">
+                <span class="icon">+</span> 创建临时作业
+              </button>
+            </div>
+            <div id="tempAssignmentsList"></div>
+          </div>
+        </div>
+
+        <!-- 3. 教学资源页面（文件浏览器样式） -->
+        <div id="page-resources" class="page-section">
+          <div class="content-header">
+            <h2>教学资源</h2>
+            <p>浏览和管理教学资源文件</p>
+          </div>
+
+          <!-- 路径导航 -->
+          <div id="resourceBreadcrumb" style="padding: 10px 15px; background: #f8f9fa; border-radius: 5px; margin-bottom: 15px; font-family: monospace; display: flex; align-items: center; gap: 5px;">
+            <span onclick="browseResources('')" style="cursor: pointer; color: #667eea;">根目录</span>
+          </div>
+
+          <!-- 操作栏 -->
+          <div class="quick-actions" style="margin-bottom: 15px;">
+            <button class="quick-action-btn" onclick="showUploadResourceModal()">
+              <span class="icon">&#x1F4E4;</span> 上传文件
+            </button>
+            <button class="quick-action-btn" onclick="showCreateFolderModalInBrowser()">
+              <span class="icon">&#x1F4C1;</span> 新建文件夹
+            </button>
+          </div>
+
+          <!-- 文件列表（表格形式） -->
+          <div style="background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden;">
+            <table style="width: 100%;">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"><input type="checkbox" id="selectAllFiles" onchange="toggleSelectAllResourceFiles(this)"></th>
+                  <th>名称</th>
+                  <th>类型</th>
+                  <th>大小</th>
+                  <th>修改时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="resourceFileBrowser"></tbody>
+            </table>
+          </div>
+
+          <!-- 批量操作栏 -->
+          <div id="resourceBatchActions" style="display: none; margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
+            <button onclick="shareSelectedResourceFiles()" class="secondary">共享选中项</button>
+            <button onclick="deleteSelectedResourceFiles()" class="danger">删除选中项</button>
+          </div>
+        </div>
+
+        <!-- 4. 资源共享页面 -->
+        <div id="page-shares" class="page-section">
+          <div class="content-header">
+            <h2>资源共享</h2>
+            <p>管理所有共享的资源</p>
+          </div>
+
+          <!-- 口令共享区块 -->
+          <div class="section-block" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 15px; color: #333;">口令共享</h3>
+            <div class="info-box info" style="margin-bottom: 15px;">
+              通过共享码分享教学资源或作业文件给他人，无需登录即可访问下载。
+            </div>
+            <div id="codeSharesList"></div>
+          </div>
+
+          <!-- 班级共享区块 -->
+          <div class="section-block" style="background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 15px; color: #333;">班级共享</h3>
+            <div class="info-box info" style="margin-bottom: 15px;">
+              共享给班级的资源，班级学生登录后可直接查看和下载。
+            </div>
+            <div id="allClassSharesList"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 创建班级模态框 -->
+  <div id="createClassModal" class="modal">
+    <div class="modal-content">
+      <h2>创建新班级</h2>
+      <div class="form-group">
+        <label>班级名称</label>
+        <input type="text" id="newClassName" placeholder="例如：2024级软件工程1班">
+      </div>
+      <button onclick="createClass()">创建</button>
+      <button onclick="closeModal('createClassModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 添加学生模态框 -->
+  <div id="addStudentsModal" class="modal">
+    <div class="modal-content">
+      <h2>批量添加学生</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 15px;">
+        每行一个学生，格式：学号 姓名 [密码]（用空格分隔）<br>
+        <small>如果不指定密码，将使用下方的默认密码</small>
+      </p>
+      <div class="form-group">
+        <label>默认密码</label>
+        <input type="text" id="defaultStudentPassword" value="123456" placeholder="未指定密码的学生将使用此密码">
+      </div>
+      <div class="form-group">
+        <label>学生信息</label>
+        <textarea id="studentsText" placeholder="20240101 张三&#10;20240102 李四&#10;20240103 王五 mypassword" style="min-height: 150px;"></textarea>
+      </div>
+      <button onclick="addStudents()">添加</button>
+      <button onclick="closeModal('addStudentsModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 创建作业模态框 -->
+  <div id="createAssignmentModal" class="modal">
+    <div class="modal-content">
+      <h2>创建新作业</h2>
+      <div class="form-group">
+        <label>作业名称</label>
+        <input type="text" id="assignmentName" placeholder="例如：第一次作业">
+      </div>
+      <div class="form-group">
+        <label>上传密码</label>
+        <input type="text" id="assignmentPassword" placeholder="学生上传时需要输入的密码">
+      </div>
+      <div class="form-group">
+        <label>截止时间</label>
+        <input type="datetime-local" id="assignmentDeadline">
+      </div>
+      <div class="form-group">
+        <label>作业描述（可选）</label>
+        <textarea id="assignmentDescription" placeholder="请输入作业描述，如作业要求、注意事项等" style="min-height: 100px;"></textarea>
+      </div>
+      <button onclick="createAssignment()">创建</button>
+      <button onclick="closeModal('createAssignmentModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 编辑作业模态框 -->
+  <div id="editAssignmentModal" class="modal">
+    <div class="modal-content">
+      <h2>编辑作业</h2>
+      <input type="hidden" id="editAssignmentId">
+      <div class="form-group">
+        <label>作业名称</label>
+        <input type="text" id="editAssignmentName" placeholder="例如：第一次作业">
+      </div>
+      <div class="form-group">
+        <label>上传密码</label>
+        <input type="text" id="editAssignmentPassword" placeholder="学生上传时需要输入的密码">
+      </div>
+      <div class="form-group">
+        <label>截止时间</label>
+        <input type="datetime-local" id="editAssignmentDeadline">
+      </div>
+      <div class="form-group">
+        <label>作业描述（可选）</label>
+        <textarea id="editAssignmentDescription" placeholder="请输入作业描述，如作业要求、注意事项等" style="min-height: 100px;"></textarea>
+      </div>
+      <button onclick="updateAssignment()">保存修改</button>
+      <button onclick="closeModal('editAssignmentModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 查看提交情况模态框 -->
+  <div id="submissionsModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h2 id="submissionsTitle"></h2>
+      <div id="submissionsContent"></div>
+      <button onclick="closeModal('submissionsModal')">关闭</button>
+    </div>
+  </div>
+
+  <!-- 删除作业确认模态框 -->
+  <div id="deleteConfirmModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ 确认删除</h2>
+      <p class="info-text" style="margin: 20px 0;">
+        确定要删除这个作业吗？<br>
+        <strong>这将删除该作业下所有已提交的文件，且无法恢复！</strong>
+      </p>
+      <button onclick="confirmDelete()" class="danger">确认删除</button>
+      <button onclick="closeModal('deleteConfirmModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 创建临时作业模态框 -->
+  <div id="createTempAssignmentModal" class="modal">
+    <div class="modal-content">
+      <h2>创建临时作业</h2>
+      <p class="info-text">临时作业不需要绑定班级，学生上传时无需验证学号</p>
+      <div class="form-group">
+        <label>作业名称</label>
+        <input type="text" id="tempAssignmentName" placeholder="例如：第一次作业">
+      </div>
+      <div class="form-group">
+        <label>上传密码</label>
+        <input type="text" id="tempAssignmentPassword" placeholder="学生上传时需要输入的密码">
+      </div>
+      <div class="form-group">
+        <label>截止时间</label>
+        <input type="datetime-local" id="tempAssignmentDeadline">
+      </div>
+      <div class="form-group">
+        <label>作业描述（可选）</label>
+        <textarea id="tempAssignmentDescription" placeholder="请输入作业描述，如作业要求、注意事项等" style="min-height: 100px;"></textarea>
+      </div>
+      <button onclick="createTempAssignment()">创建</button>
+      <button onclick="closeModal('createTempAssignmentModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 关联班级模态框 -->
+  <div id="linkClassModal" class="modal">
+    <div class="modal-content">
+      <h2>关联到班级</h2>
+      <p class="info-text">将临时作业关联到班级后：</p>
+      <ul class="info-text" style="margin-left: 20px; margin-bottom: 15px;">
+        <li>作业将转换为普通作业</li>
+        <li>从临时作业列表中移除</li>
+        <li>可在"作业管理"中查看该作业</li>
+        <li>可以查看哪些学生已提交、哪些未提交</li>
+      </ul>
+      <div class="form-group">
+        <label>选择班级</label>
+        <select id="linkClassSelect">
+          <option value="">请选择班级</option>
+        </select>
+      </div>
+      <button onclick="confirmLinkClass()">关联</button>
+      <button onclick="closeModal('linkClassModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 修改密码模态框 -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <h2>修改密码</h2>
+      <div class="form-group">
+        <label>原密码</label>
+        <input type="password" id="oldPassword" placeholder="请输入原密码">
+      </div>
+      <div class="form-group">
+        <label>新密码</label>
+        <input type="password" id="newPassword" placeholder="请输入新密码（至少6位）">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input type="password" id="confirmPassword" placeholder="请再次输入新密码">
+      </div>
+      <button onclick="changePassword()">确认修改</button>
+      <button onclick="closeModal('changePasswordModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 删除学生确认模态框 -->
+  <div id="deleteStudentModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ 确认删除</h2>
+      <p class="info-text" id="deleteStudentMessage" style="margin: 20px 0;"></p>
+      <button onclick="confirmDeleteStudent()" class="danger">确认删除</button>
+      <button onclick="closeModal('deleteStudentModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 创建共享模态框 -->
+  <div id="createShareModal" class="modal">
+    <div class="modal-content">
+      <h2>生成共享码</h2>
+      <div class="form-group">
+        <label>共享类型</label>
+        <select id="shareType" onchange="toggleShareOptions()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+          <option value="assignment">整个作业（所有学生文件）</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>描述（可选）</label>
+        <textarea id="shareDescription" rows="3" placeholder="例如：这是第一次作业的提交文件" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>访问次数限制</label>
+        <input type="number" id="shareMaxAccess" value="0" min="0" placeholder="0表示不限制">
+        <small style="color: #666; display: block; margin-top: 5px;">0 表示不限制访问次数</small>
+      </div>
+      <div class="form-group">
+        <label>过期时间（可选）</label>
+        <input type="datetime-local" id="shareExpireAt">
+        <small style="color: #666; display: block; margin-top: 5px;">留空表示永不过期</small>
+      </div>
+      <button onclick="createShare()">生成共享码</button>
+      <button onclick="closeModal('createShareModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 显示共享码结果模态框 -->
+  <div id="shareResultModal" class="modal">
+    <div class="modal-content">
+      <h2>共享码已生成 ✅</h2>
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+        <p style="margin-bottom: 10px; color: #666;">共享码</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <input type="text" id="generatedShareCode" readonly style="font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 3px; flex: 1; max-width: 200px;">
+          <button onclick="copyShareCode()" class="secondary" style="padding: 10px 20px;">复制</button>
+        </div>
+      </div>
+      <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <p style="margin-bottom: 10px; font-weight: 500;">访问链接</p>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="text" id="generatedShareUrl" readonly style="flex: 1; font-size: 14px;">
+          <button onclick="copyShareUrl()" class="secondary" style="padding: 8px 16px;">复制</button>
+        </div>
+      </div>
+      <button onclick="closeModal('shareResultModal')">关闭</button>
+    </div>
+  </div>
+
+  <!-- 创建文件夹模态框 -->
+  <div id="createFolderModal" class="modal">
+    <div class="modal-content">
+      <h2>创建文件夹</h2>
+      <div class="form-group">
+        <label>文件夹名称</label>
+        <input type="text" id="newFolderName" placeholder="请输入文件夹名称">
+      </div>
+      <button onclick="createFolder()">创建</button>
+      <button onclick="closeModal('createFolderModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 上传资源模态框 -->
+  <div id="uploadResourceModal" class="modal">
+    <div class="modal-content">
+      <h2>上传教学资源</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 15px;">上传到: <code id="uploadTargetDisplay">根目录</code></p>
+      <div class="form-group">
+        <label>选择文件</label>
+        <input type="file" id="resourceFile" multiple>
+      </div>
+      <button onclick="uploadResource()">上传</button>
+      <button onclick="closeModal('uploadResourceModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 重命名模态框 -->
+  <div id="renameResourceModal" class="modal">
+    <div class="modal-content">
+      <h2>重命名</h2>
+      <input type="hidden" id="renameResourceOldPath">
+      <div class="form-group">
+        <label>新名称</label>
+        <input type="text" id="renameResourceNewName" placeholder="请输入新名称">
+      </div>
+      <button onclick="confirmRenameResource()">确定</button>
+      <button onclick="closeModal('renameResourceModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 浏览服务器文件模态框 -->
+  <div id="browseServerModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+      <h2>浏览服务器文件</h2>
+      <div id="currentPath" style="padding: 10px; background: #f8f9fa; border-radius: 5px; margin-bottom: 15px; font-family: monospace;"></div>
+
+      <div style="margin-bottom: 15px;">
+        <button onclick="goBackDirectory()" class="secondary">返回上级</button>
+        <button onclick="selectMultipleFiles()" style="margin-left: 10px;">批量选择</button>
+        <button onclick="shareSelectedItems()" class="secondary" style="margin-left: 10px;">共享选中项</button>
+      </div>
+
+      <div id="serverFilesList" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px;">
+        <!-- 文件列表会动态生成 -->
+      </div>
+      <button onclick="closeModal('browseServerModal')" class="secondary" style="margin-top: 15px;">关闭</button>
+    </div>
+  </div>
+
+  <!-- 创建资源共享模态框 -->
+  <div id="createResourceShareModal" class="modal">
+    <div class="modal-content">
+      <h2>资源共享</h2>
+      <div class="form-group">
+        <label>共享名称</label>
+        <input type="text" id="resourceShareName" placeholder="例如：第一章课件">
+      </div>
+      <div class="form-group">
+        <label>共享码</label>
+        <input type="text" id="resourceShareCustomCode" placeholder="可修改为自定义共享码">
+      </div>
+      <div class="form-group">
+        <label>描述（可选）</label>
+        <textarea id="resourceShareDescription" rows="3" placeholder="例如：包含PPT和参考资料" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+      </div>
+      <div class="form-group" style="display: none;">
+        <label>访问次数限制</label>
+        <input type="number" id="resourceShareMaxAccess" value="0" min="0" placeholder="0表示不限制">
+      </div>
+      <div class="form-group">
+        <label>过期时间（可选）</label>
+        <input type="datetime-local" id="resourceShareExpireAt">
+        <small style="color: #666; display: block; margin-top: 5px;">留空表示永不过期</small>
+      </div>
+      <button onclick="createResourceShare()">共享</button>
+      <button onclick="closeModal('createResourceShareModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 共享资源到班级模态框 -->
+  <div id="shareToClassModal" class="modal">
+    <div class="modal-content" style="max-width: 550px;">
+      <h2>共享资源到班级</h2>
+      <p style="margin-bottom: 15px; color: #666;">班级：<span id="shareToClassName" style="color: #667eea; font-weight: bold;"></span></p>
+      <div class="form-group">
+        <label>选择要共享的资源</label>
+        <div id="shareableResourcesList" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 10px; margin-bottom: 10px;"></div>
+        <input type="hidden" id="shareToClassResourcePath">
+        <input type="hidden" id="shareToClassResourceType" value="file">
+      </div>
+      <div class="form-group">
+        <label>共享名称</label>
+        <input type="text" id="shareToClassResourceName" placeholder="显示给学生的名称">
+      </div>
+      <div class="form-group">
+        <label>说明（可选）</label>
+        <textarea id="shareToClassDescription" rows="2" placeholder="资源说明或使用方法" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
+      </div>
+      <button onclick="createClassShare()">确定共享</button>
+      <button onclick="closeModal('shareToClassModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <script>
+    let currentTeacher = null;
+    let currentClass = null;
+    let allClasses = [];
+    let deleteAssignmentId = null; // 待删除的作业ID
+    let linkAssignmentId = null; // 待关联的作业ID
+    let deleteStudentId = null; // 待删除的学生ID
+    let deleteStudentIds = []; // 待批量删除的学生ID列表
+    let currentShareAssignmentId = null; // 待共享的作业ID
+
+    // 页面加载时检查登录状态
+    window.onload = async function() {
+      const response = await fetch('/api/teacher/check');
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        currentTeacher = data.teacher;
+        showMainPage();
+      }
+    };
+
+    function showLogin() {
+      document.getElementById('loginPage').classList.remove('hidden');
+      document.getElementById('registerPage').classList.add('hidden');
+    }
+
+    function showRegister() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('registerPage').classList.remove('hidden');
+    }
+
+    async function login() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        alert('请输入用户名和密码');
+        return;
+      }
+
+      const response = await fetch('/api/teacher/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        currentTeacher = data.teacher;
+        showMainPage();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function register() {
+      const username = document.getElementById('registerUsername').value;
+      const password = document.getElementById('registerPassword').value;
+      const name = document.getElementById('registerName').value;
+
+      if (!username || !password || !name) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      const response = await fetch('/api/teacher/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, name })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('注册成功，请登录');
+        showLogin();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/teacher/logout', { method: 'POST' });
+      currentTeacher = null;
+      currentClass = null;
+      document.getElementById('mainPage').classList.add('hidden');
+      showLogin();
+    }
+
+    function showMainPage() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('registerPage').classList.add('hidden');
+      document.getElementById('mainPage').classList.remove('hidden');
+      document.getElementById('teacherName').textContent = currentTeacher.name;
+      loadClasses();
+      loadTempAssignments();
+      loadShares();
+      loadResources();
+      loadAllClassShares();
+    }
+
+    // 切换页面
+    function switchPage(pageName) {
+      // 隐藏所有页面
+      document.querySelectorAll('.page-section').forEach(page => {
+        page.classList.remove('active');
+      });
+      // 取消所有菜单激活状态
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      // 显示目标页面
+      const targetPage = document.getElementById(`page-${pageName}`);
+      if (targetPage) {
+        targetPage.classList.add('active');
+      }
+      // 激活对应菜单
+      event.currentTarget.classList.add('active');
+    }
+
+    async function toggleStudentsManagement(classId) {
+      const studentsDiv = document.getElementById(`students-${classId}`);
+
+      if (studentsDiv.classList.contains('hidden')) {
+        studentsDiv.classList.remove('hidden');
+        currentClass = allClasses.find(c => c.id === classId);
+        await loadStudents(classId);
+      } else {
+        studentsDiv.classList.add('hidden');
+      }
+    }
+
+    async function toggleAssignmentsManagement(classId) {
+      const studentsDiv = document.getElementById(`students-${classId}`);
+      const assignmentsDiv = document.getElementById(`assignments-${classId}`);
+      const sharesDiv = document.getElementById(`class-shares-${classId}`);
+
+      studentsDiv.classList.add('hidden');
+      if (sharesDiv) sharesDiv.classList.add('hidden');
+
+      if (assignmentsDiv.classList.contains('hidden')) {
+        assignmentsDiv.classList.remove('hidden');
+        currentClass = allClasses.find(c => c.id === classId);
+        await loadAssignments(classId);
+      } else {
+        assignmentsDiv.classList.add('hidden');
+      }
+    }
+
+    async function toggleClassSharesManagement(classId) {
+      const studentsDiv = document.getElementById(`students-${classId}`);
+      const assignmentsDiv = document.getElementById(`assignments-${classId}`);
+      const sharesDiv = document.getElementById(`class-shares-${classId}`);
+
+      studentsDiv.classList.add('hidden');
+      assignmentsDiv.classList.add('hidden');
+
+      if (sharesDiv.classList.contains('hidden')) {
+        sharesDiv.classList.remove('hidden');
+        currentClass = allClasses.find(c => c.id === classId);
+        await loadClassShares(classId);
+      } else {
+        sharesDiv.classList.add('hidden');
+      }
+    }
+
+    async function loadClassShares(classId) {
+      try {
+        const response = await fetch(`/api/classes/${classId}/shares`);
+        const data = await response.json();
+        if (data.success) {
+          displayClassShares(data.shares, classId);
+        }
+      } catch (error) {
+        console.error('加载班级共享列表失败:', error);
+      }
+    }
+
+    function displayClassShares(shares, classId) {
+      const container = document.getElementById(`classSharesList-${classId}`);
+
+      if (shares.length === 0) {
+        container.innerHTML = '<p style="color: #666; margin-top: 10px;">暂无共享资源，点击"添加共享资源"按钮共享文件给该班级</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>资源名称</th>
+              <th>类型</th>
+              <th>说明</th>
+              <th>共享时间</th>
+              <th style="width: 80px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${shares.map(s => `
+              <tr>
+                <td>${s.share_name}</td>
+                <td>${s.share_type === 'directory' ? '文件夹' : '文件'}</td>
+                <td>${s.description || '-'}</td>
+                <td>${new Date(s.created_at).toLocaleString('zh-CN')}</td>
+                <td>
+                  <button onclick="deleteClassShare(${s.id}, ${classId})" class="danger" style="margin: 0; padding: 5px 10px; font-size: 12px;">删除</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function deleteClassShare(shareId, classId) {
+      if (!confirm('确定要删除这个共享吗？删除后学生将无法再看到此资源。')) return;
+
+      try {
+        const response = await fetch(`/api/class-shares/${shareId}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (data.success) {
+          alert('共享已删除');
+          await loadClassShares(classId);
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('删除班级共享失败:', error);
+        alert('删除失败，请重试');
+      }
+    }
+
+    let shareToClassId = null;
+
+    function showShareToClassModal(classId) {
+      shareToClassId = classId;
+      currentClass = allClasses.find(c => c.id === classId);
+      document.getElementById('shareToClassName').textContent = currentClass.name;
+      document.getElementById('shareToClassResourceName').value = '';
+      document.getElementById('shareToClassDescription').value = '';
+      document.getElementById('shareToClassResourcePath').value = '';
+      document.getElementById('shareToClassResourceType').value = 'file';
+
+      loadShareableResources();
+
+      document.getElementById('shareToClassModal').classList.add('active');
+    }
+
+    async function loadShareableResources() {
+      const container = document.getElementById('shareableResourcesList');
+      container.innerHTML = '<p style="color: #666;">正在加载资源列表...</p>';
+
+      try {
+        const response = await fetch('/api/resources');
+        const data = await response.json();
+
+        let html = '';
+
+        if (data.success && data.resources.length > 0) {
+          html += '<p style="font-weight: bold; margin-bottom: 8px;">已上传资源：</p>';
+          html += data.resources.map(r => {
+            const escapedPath = r.file_path.replace(/'/g, "\\'");
+            const escapedName = r.resource_name.replace(/'/g, "\\'");
+            return `
+            <div class="resource-select-item" style="display: flex; align-items: center; padding: 8px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 5px; cursor: pointer;"
+                 onclick="selectShareResource('${escapedPath}', '${escapedName}', '${r.is_folder ? 'directory' : 'file'}')">
+              <span style="margin-right: 10px;">${r.is_folder ? '&#x1F4C1;' : '&#x1F4C4;'}</span>
+              <span>${r.resource_name}</span>
+              <span style="margin-left: auto; color: #999; font-size: 12px;">${r.is_folder ? '文件夹' : formatFileSize(r.file_size)}</span>
+            </div>
+          `}).join('');
+        }
+
+        if (!html) {
+          html = '<p style="color: #666;">暂无可共享的资源，请先在"教学资源"页面上传文件</p>';
+        }
+
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = '<p style="color: red;">加载资源列表失败</p>';
+        console.error('加载可共享资源失败:', error);
+      }
+    }
+
+    function selectShareResource(resourcePath, resourceName, resourceType) {
+      document.getElementById('shareToClassResourcePath').value = resourcePath;
+      document.getElementById('shareToClassResourceName').value = resourceName;
+      document.getElementById('shareToClassResourceType').value = resourceType;
+
+      document.querySelectorAll('.resource-select-item').forEach(item => {
+        item.style.borderColor = '#eee';
+        item.style.background = 'white';
+      });
+      event.currentTarget.style.borderColor = '#667eea';
+      event.currentTarget.style.background = '#f0f0ff';
+    }
+
+    async function createClassShare() {
+      const shareName = document.getElementById('shareToClassResourceName').value.trim();
+      const resourcePath = document.getElementById('shareToClassResourcePath').value.trim();
+      const shareType = document.getElementById('shareToClassResourceType').value;
+      const description = document.getElementById('shareToClassDescription').value.trim();
+
+      if (!resourcePath) {
+        alert('请选择要共享的资源');
+        return;
+      }
+      if (!shareName) {
+        alert('请输入共享名称');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/class-shares', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            classId: shareToClassId,
+            shareType,
+            resourcePath,
+            shareName,
+            description
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert('共享创建成功，班级学生登录后即可看到');
+          closeModal('shareToClassModal');
+          await loadClassShares(shareToClassId);
+        } else {
+          alert('创建失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('创建班级共享失败:', error);
+        alert('创建失败，请重试');
+      }
+    }
+
+    async function exportClassSubmissions(classId) {
+      try {
+        // 直接下载文件
+        window.location.href = `/api/classes/${classId}/export`;
+      } catch (error) {
+        console.error('导出失败:', error);
+        alert('导出失败，请重试');
+      }
+    }
+
+    async function deleteClass(classId) {
+      if (!confirm('确定要删除此班级吗？\n\n删除后班级将进入历史记录，不再显示在列表中。\n管理员可以查看历史记录并最终删除。')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/classes/${classId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('班级已删除');
+          await loadClasses();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除班级失败:', error);
+      }
+    }
+
+    async function loadClasses() {
+      const response = await fetch('/api/classes');
+      const data = await response.json();
+
+      if (data.success) {
+        allClasses = data.classes;
+        displayClasses();
+        populateClassSelect();
+      }
+    }
+
+    function displayClasses() {
+      const container = document.getElementById('classesList');
+
+      if (allClasses.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F3EB;</div>
+            <p>暂无班级</p>
+            <p style="font-size: 13px; margin-top: 5px;">点击上方"创建班级"按钮添加第一个班级</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = allClasses.map(cls => `
+        <div class="class-item">
+          <div class="class-header">
+            <div class="class-info">
+              <h3>${cls.name}</h3>
+              <p>创建时间: ${new Date(cls.created_at).toLocaleString('zh-CN')}</p>
+            </div>
+            <div class="class-actions">
+              <button onclick="toggleStudentsManagement(${cls.id})" class="secondary">学生管理</button>
+              <button onclick="exportClassSubmissions(${cls.id})" class="secondary">导出提交情况</button>
+              <button onclick="deleteClass(${cls.id})" class="danger">删除班级</button>
+            </div>
+          </div>
+
+          <!-- 学生管理区域 -->
+          <div id="students-${cls.id}" class="class-content hidden">
+            <h4 style="margin-bottom: 10px;">学生列表</h4>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+              <button onclick="showAddStudentsModal(${cls.id})">批量添加学生</button>
+              <button onclick="batchDeleteStudents(${cls.id})" class="danger">批量删除选中学生</button>
+            </div>
+            <div id="studentsList-${cls.id}"></div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectClass(classId) {
+      currentClass = allClasses.find(c => c.id === classId);
+      displayClasses();
+
+      // 更新学生和作业标签页
+      document.getElementById('noClassSelected').classList.add('hidden');
+      document.getElementById('studentsContent').classList.remove('hidden');
+      document.getElementById('studentsClassTitle').textContent = `班级：${currentClass.name}`;
+
+      document.getElementById('noClassForAssignment').classList.add('hidden');
+      document.getElementById('assignmentsContent').classList.remove('hidden');
+      document.getElementById('assignmentsClassTitle').textContent = `班级：${currentClass.name}`;
+    }
+
+    function showCreateClassModal() {
+      document.getElementById('createClassModal').classList.add('active');
+      document.getElementById('newClassName').value = '';
+    }
+
+    async function createClass() {
+      const name = document.getElementById('newClassName').value.trim();
+
+      if (!name) {
+        alert('请输入班级名称');
+        return;
+      }
+
+      const response = await fetch('/api/classes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        closeModal('createClassModal');
+        loadClasses();
+        alert('班级创建成功');
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function loadStudents(classId) {
+      const response = await fetch(`/api/classes/${classId}/students`);
+      const data = await response.json();
+
+      if (data.success) {
+        displayStudents(data.students, classId);
+      }
+    }
+
+    function displayStudents(students, classId) {
+      const container = document.getElementById(`studentsList-${classId}`);
+
+      if (students.length === 0) {
+        container.innerHTML = '<p style="color: #666; margin-top: 10px;">暂无学生，请添加学生</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px;">
+                <input type="checkbox" id="selectAllStudents-${classId}" onchange="toggleSelectAllStudents(this, ${classId})">
+              </th>
+              <th>学号</th>
+              <th>姓名</th>
+              <th>添加时间</th>
+              <th style="width: 180px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${students.map(s => {
+              const escapedName = s.name.replace(/'/g, "\\'");
+              return `
+              <tr>
+                <td>
+                  <input type="checkbox" class="student-checkbox-${classId}" value="${s.id}">
+                </td>
+                <td>${s.student_id}</td>
+                <td>${s.name}</td>
+                <td>${new Date(s.created_at).toLocaleString('zh-CN')}</td>
+                <td>
+                  <button onclick="resetStudentPassword(${s.id}, '${escapedName}')" class="secondary" style="margin: 0; padding: 5px 10px; font-size: 12px;">重置密码</button>
+                  <button onclick="deleteStudent(${s.id}, '${escapedName}')" class="danger" style="margin: 0; padding: 5px 10px; font-size: 12px;">删除</button>
+                </td>
+              </tr>
+            `}).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function showAddStudentsModal(classId) {
+      currentClass = allClasses.find(c => c.id === classId);
+      document.getElementById('addStudentsModal').classList.add('active');
+      document.getElementById('studentsText').value = '';
+    }
+
+    function toggleSelectAllStudents(checkbox, classId) {
+      const checkboxes = document.querySelectorAll(`.student-checkbox-${classId}`);
+      checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+      });
+    }
+
+    function batchDeleteStudents(classId) {
+      const checkboxes = document.querySelectorAll(`.student-checkbox-${classId}:checked`);
+
+      if (checkboxes.length === 0) {
+        alert('请选择要删除的学生');
+        return;
+      }
+
+      deleteStudentId = null;
+      deleteStudentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+      document.getElementById('deleteStudentMessage').innerHTML =
+        `确定要删除选中的 <strong>${deleteStudentIds.length}</strong> 名学生吗？`;
+      document.getElementById('deleteStudentModal').classList.add('active');
+    }
+
+    async function addStudents() {
+      const studentsText = document.getElementById('studentsText').value.trim();
+      const defaultPassword = document.getElementById('defaultStudentPassword').value.trim() || '123456';
+
+      if (!studentsText) {
+        alert('请输入学生信息');
+        return;
+      }
+
+      const response = await fetch(`/api/classes/${currentClass.id}/students/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentsText, defaultPassword })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        closeModal('addStudentsModal');
+        await loadStudents(currentClass.id);
+        alert(data.message);
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function loadAssignments(classId) {
+      const response = await fetch(`/api/classes/${classId}/assignments`);
+      const data = await response.json();
+
+      if (data.success) {
+        displayAssignments(data.assignments, classId);
+      }
+    }
+
+    function displayAssignments(assignments, classId) {
+      const container = document.getElementById(`assignmentsList-${classId}`);
+
+      if (assignments.length === 0) {
+        container.innerHTML = '<p class="info-text" style="margin-top: 10px;">暂无作业，请创建新作业</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>作业名称</th>
+              <th>密码</th>
+              <th>截止时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assignments.map(a => {
+              const isExpired = new Date(a.deadline) < new Date();
+              return `
+                <tr>
+                  <td>${a.assignment_name}</td>
+                  <td><code>${a.password}</code></td>
+                  <td>${new Date(a.deadline).toLocaleString('zh-CN')}</td>
+                  <td>
+                    <span class="status-badge ${isExpired ? 'status-warning' : 'status-success'}">
+                      ${isExpired ? '已截止' : '进行中'}
+                    </span>
+                  </td>
+                  <td>
+                    <button onclick="viewSubmissions(${a.id})">查看提交</button>
+                    <button onclick="showEditAssignmentModal(${a.id}, '${a.assignment_name.replace(/'/g, "\\'")}', '${a.password}', '${a.deadline}', ${a.description ? `'${a.description.replace(/'/g, "\\'").replace(/\n/g, "\\n")}'` : 'null'})" class="secondary">编辑</button>
+                    <button onclick="downloadAssignment(${a.id})" class="secondary">批量下载</button>
+                    <button onclick="showCreateShareModal(${a.id})" class="secondary">生成共享</button>
+                    <button onclick="deleteAssignment(${a.id})" class="danger">删除</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function showCreateAssignmentModal(classId) {
+      currentClass = allClasses.find(c => c.id === classId);
+      document.getElementById('createAssignmentModal').classList.add('active');
+      document.getElementById('assignmentName').value = '';
+      document.getElementById('assignmentPassword').value = generatePassword();
+      document.getElementById('assignmentDescription').value = '';
+
+      // 设置默认截止时间为明天
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('assignmentDeadline').value = tomorrow.toISOString().slice(0, 16);
+    }
+
+    function generatePassword() {
+      return Math.random().toString(36).substring(2, 10).toUpperCase();
+    }
+
+    async function createAssignment() {
+      const assignmentName = document.getElementById('assignmentName').value.trim();
+      const password = document.getElementById('assignmentPassword').value.trim();
+      const deadline = document.getElementById('assignmentDeadline').value;
+      const description = document.getElementById('assignmentDescription').value.trim();
+
+      if (!assignmentName || !password || !deadline) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      const response = await fetch('/api/assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classId: currentClass.id,
+          assignmentName,
+          password,
+          deadline,
+          description: description || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        closeModal('createAssignmentModal');
+        await loadAssignments(currentClass.id);
+        loadClassAssignments();
+        alert('作业创建成功');
+      } else {
+        alert(data.message);
+      }
+    }
+
+    function showEditAssignmentModal(assignmentId, name, password, deadline, description) {
+      document.getElementById('editAssignmentId').value = assignmentId;
+      document.getElementById('editAssignmentName').value = name;
+      document.getElementById('editAssignmentPassword').value = password;
+
+      // 转换时间格式为 datetime-local 格式
+      const deadlineDate = new Date(deadline);
+      document.getElementById('editAssignmentDeadline').value = deadlineDate.toISOString().slice(0, 16);
+
+      document.getElementById('editAssignmentDescription').value = description || '';
+
+      document.getElementById('editAssignmentModal').classList.add('active');
+    }
+
+    async function updateAssignment() {
+      const assignmentId = document.getElementById('editAssignmentId').value;
+      const assignmentName = document.getElementById('editAssignmentName').value.trim();
+      const password = document.getElementById('editAssignmentPassword').value.trim();
+      const deadline = document.getElementById('editAssignmentDeadline').value;
+      const description = document.getElementById('editAssignmentDescription').value.trim();
+
+      if (!assignmentName || !password || !deadline) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      const response = await fetch(`/api/assignments/${assignmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignmentName,
+          password,
+          deadline,
+          description: description || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        closeModal('editAssignmentModal');
+        alert('作业修改成功');
+
+        // 刷新作业列表
+        await loadClasses();
+        await loadTempAssignments();
+        loadClassAssignments();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function viewSubmissions(assignmentId) {
+      const response = await fetch(`/api/assignments/${assignmentId}/submissions`);
+      const data = await response.json();
+
+      if (data.success) {
+        displaySubmissions(data.assignment, data.submissions, data.isTemp);
+      }
+    }
+
+    function displaySubmissions(assignment, submissions, isTemp) {
+      document.getElementById('submissionsTitle').textContent = `${assignment.assignment_name} - 提交情况`;
+
+      // 临时作业：显示所有已提交的学号和文件
+      if (isTemp) {
+        const total = submissions.length;
+
+        document.getElementById('submissionsContent').innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <p class="info-text" style="margin: 0;">
+              <span style="background: #fff3cd; padding: 5px 10px; border-radius: 5px;">📋 临时作业</span>
+              &nbsp;&nbsp;已提交: ${total} 人
+            </p>
+            ${total > 0 ? `<button onclick="downloadAssignment(${assignment.id})" class="secondary">批量下载所有作业</button>` : ''}
+          </div>
+          ${total === 0 ? '<p class="info-text">暂无学生提交作业</p>' : `
+            <table>
+              <thead>
+                <tr>
+                  <th>学号</th>
+                  <th>文件名</th>
+                  <th>提交时间</th>
+                  <th>上传IP</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${submissions.map(s => `
+                  <tr>
+                    <td>${s.student_id}</td>
+                    <td>${s.filename}</td>
+                    <td>${new Date(s.uploadTime).toLocaleString('zh-CN')}</td>
+                    <td>${s.ipAddress || '-'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `}
+        `;
+      } else {
+        // 普通作业：显示班级学生列表和提交状态
+        const uploaded = submissions.filter(s => s.uploaded).length;
+        const total = submissions.length;
+
+        document.getElementById('submissionsContent').innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <p class="info-text" style="margin: 0;">已提交: ${uploaded} / ${total}</p>
+            ${uploaded > 0 ? `<button onclick="downloadAssignment(${assignment.id})" class="secondary">批量下载所有作业</button>` : ''}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>学号</th>
+                <th>姓名</th>
+                <th>状态</th>
+                <th>提交时间</th>
+                <th>文件名</th>
+                <th>上传IP</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${submissions.map(s => `
+                <tr>
+                  <td>${s.student_id}</td>
+                  <td>${s.name}</td>
+                  <td>
+                    <span class="status-badge ${s.uploaded ? 'status-success' : 'status-warning'}">
+                      ${s.uploaded ? '已提交' : '未提交'}
+                    </span>
+                  </td>
+                  <td>${s.uploadTime ? new Date(s.uploadTime).toLocaleString('zh-CN') : '-'}</td>
+                  <td>${s.filename || '-'}</td>
+                  <td>${s.ipAddress || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+      }
+
+      document.getElementById('submissionsModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function downloadAssignment(assignmentId) {
+      // 直接跳转到下载链接
+      window.location.href = `/api/assignments/${assignmentId}/download`;
+    }
+
+    function deleteAssignment(assignmentId) {
+      deleteAssignmentId = assignmentId;
+      document.getElementById('deleteConfirmModal').classList.add('active');
+    }
+
+    async function confirmDelete() {
+      if (!deleteAssignmentId) return;
+
+      try {
+        const response = await fetch(`/api/assignments/${deleteAssignmentId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('作业删除成功');
+          closeModal('deleteConfirmModal');
+          deleteAssignmentId = null;
+          // 刷新班级作业列表
+          if (currentClass) {
+            await loadAssignments(currentClass.id);
+          }
+          // 同时刷新临时作业列表（以防删除的是临时作业）
+          await loadTempAssignments();
+          // 刷新作业管理页面
+          loadClassAssignments();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除作业失败:', error);
+      }
+    }
+
+    // ==================== 临时作业相关函数 ====================
+
+    async function loadTempAssignments() {
+      const response = await fetch('/api/assignments/temp');
+      const data = await response.json();
+
+      if (data.success) {
+        displayTempAssignments(data.assignments);
+      }
+    }
+
+    function displayTempAssignments(assignments) {
+      const container = document.getElementById('tempAssignmentsList');
+
+      if (assignments.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F4DD;</div>
+            <p>暂无临时作业</p>
+            <p style="font-size: 13px; margin-top: 5px;">点击上方"创建临时作业"按钮添加</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>作业名称</th>
+              <th>密码</th>
+              <th>截止时间</th>
+              <th>关联班级</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assignments.map(a => {
+              const isExpired = new Date(a.deadline) < new Date();
+              const linkedClass = a.class_id ? allClasses.find(c => c.id === a.class_id) : null;
+              return `
+                <tr>
+                  <td>${a.assignment_name}</td>
+                  <td><code>${a.password}</code></td>
+                  <td>${new Date(a.deadline).toLocaleString('zh-CN')}</td>
+                  <td>${linkedClass ? linkedClass.name : '未关联'}</td>
+                  <td>
+                    <span class="status-badge ${isExpired ? 'status-warning' : 'status-success'}">
+                      ${isExpired ? '已截止' : '进行中'}
+                    </span>
+                  </td>
+                  <td>
+                    <button onclick="viewSubmissions(${a.id})">查看提交</button>
+                    ${!linkedClass ? `<button onclick="showLinkClassModal(${a.id})" class="secondary">关联班级</button>` : ''}
+                    <button onclick="showEditAssignmentModal(${a.id}, '${a.assignment_name.replace(/'/g, "\\'")}', '${a.password}', '${a.deadline}', ${a.description ? `'${a.description.replace(/'/g, "\\'").replace(/\n/g, "\\n")}'` : 'null'})" class="secondary">编辑</button>
+                    <button onclick="downloadAssignment(${a.id})" class="secondary">批量下载</button>
+                    <button onclick="showCreateShareModal(${a.id})" class="secondary">生成共享</button>
+                    <button onclick="deleteAssignment(${a.id})" class="danger">删除</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function showCreateTempAssignmentModal() {
+      document.getElementById('createTempAssignmentModal').classList.add('active');
+      document.getElementById('tempAssignmentName').value = '';
+      document.getElementById('tempAssignmentPassword').value = generatePassword();
+      document.getElementById('tempAssignmentDescription').value = '';
+
+      // 设置默认截止时间为明天
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('tempAssignmentDeadline').value = tomorrow.toISOString().slice(0, 16);
+    }
+
+    async function createTempAssignment() {
+      const assignmentName = document.getElementById('tempAssignmentName').value.trim();
+      const password = document.getElementById('tempAssignmentPassword').value.trim();
+      const deadline = document.getElementById('tempAssignmentDeadline').value;
+      const description = document.getElementById('tempAssignmentDescription').value.trim();
+
+      if (!assignmentName || !password || !deadline) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      const response = await fetch('/api/assignments/temp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assignmentName,
+          password,
+          deadline,
+          description: description || null
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        closeModal('createTempAssignmentModal');
+        loadTempAssignments();
+        alert('临时作业创建成功');
+      } else {
+        alert(data.message);
+      }
+    }
+
+    function showLinkClassModal(assignmentId) {
+      linkAssignmentId = assignmentId;
+
+      // 填充班级列表
+      const select = document.getElementById('linkClassSelect');
+      select.innerHTML = '<option value="">请选择班级</option>' +
+        allClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      document.getElementById('linkClassModal').classList.add('active');
+    }
+
+    async function confirmLinkClass() {
+      const classId = document.getElementById('linkClassSelect').value;
+
+      if (!classId) {
+        alert('请选择班级');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/assignments/${linkAssignmentId}/link-class`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ classId: parseInt(classId) })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(data.message);
+          closeModal('linkClassModal');
+          linkAssignmentId = null;
+          loadTempAssignments(); // 刷新临时作业列表，已关联的作业会消失
+        } else {
+          alert('关联失败：' + data.message);
+        }
+      } catch (error) {
+        alert('关联失败，请重试');
+        console.error('关联班级失败:', error);
+      }
+    }
+
+    // ==================== 修改密码相关函数 ====================
+
+    function showChangePasswordModal() {
+      document.getElementById('changePasswordModal').classList.add('active');
+      document.getElementById('oldPassword').value = '';
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmPassword').value = '';
+    }
+
+    async function changePassword() {
+      const oldPassword = document.getElementById('oldPassword').value.trim();
+      const newPassword = document.getElementById('newPassword').value.trim();
+      const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        alert('新密码长度至少6位');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert('两次输入的新密码不一致');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/teacher/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('密码修改成功');
+          closeModal('changePasswordModal');
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('修改密码失败，请重试');
+        console.error('修改密码失败:', error);
+      }
+    }
+
+    // ==================== 删除学生相关函数 ====================
+
+    function deleteStudent(studentId, studentName) {
+      deleteStudentId = studentId;
+      deleteStudentIds = [];
+      document.getElementById('deleteStudentMessage').innerHTML =
+        `确定要删除学生"<strong>${studentName}</strong>"吗？`;
+      document.getElementById('deleteStudentModal').classList.add('active');
+    }
+
+    async function resetStudentPassword(studentId, studentName) {
+      const newPassword = prompt(`请输入学生"${studentName}"的新密码（留空则重置为123456）：`);
+      if (newPassword === null) return; // 用户取消
+
+      try {
+        const response = await fetch(`/api/students/${studentId}/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newPassword: newPassword || '123456' })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          alert(data.message);
+        } else {
+          alert('重置失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('重置密码失败:', error);
+        alert('重置失败，请重试');
+      }
+    }
+
+    function batchDeleteStudents(classId) {
+      const checkboxes = document.querySelectorAll(`.student-checkbox-${classId}:checked`);
+
+      if (checkboxes.length === 0) {
+        alert('请选择要删除的学生');
+        return;
+      }
+
+      currentClass = allClasses.find(c => c.id === classId);
+      deleteStudentId = null;
+      deleteStudentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+      document.getElementById('deleteStudentMessage').innerHTML =
+        `确定要删除选中的 <strong>${deleteStudentIds.length}</strong> 名学生吗？`;
+      document.getElementById('deleteStudentModal').classList.add('active');
+    }
+
+    async function confirmDeleteStudent() {
+      try {
+        let response;
+
+        // 单个删除
+        if (deleteStudentId) {
+          response = await fetch(`/api/students/${deleteStudentId}`, {
+            method: 'DELETE'
+          });
+        }
+        // 批量删除
+        else if (deleteStudentIds.length > 0) {
+          response = await fetch('/api/students/batch-delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ studentIds: deleteStudentIds })
+          });
+        } else {
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert(data.message);
+          closeModal('deleteStudentModal');
+          deleteStudentId = null;
+          deleteStudentIds = [];
+          if (currentClass) {
+            await loadStudents(currentClass.id);
+          }
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除学生失败:', error);
+      }
+    }
+
+    // ==================== 共享相关函数 ====================
+
+    // 加载共享列表
+    async function loadShares() {
+      try {
+        const response = await fetch('/api/shares');
+        const data = await response.json();
+
+        if (data.success) {
+          displayShares(data.shares);
+        }
+      } catch (error) {
+        console.error('加载共享列表失败:', error);
+      }
+    }
+
+    // 显示共享列表
+    function displayShares(shares) {
+      const container = document.getElementById('codeSharesList');
+
+      if (shares.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">&#x1F517;</div>
+            <p>暂无共享</p>
+            <p style="font-size: 13px; margin-top: 5px;">在教学资源或作业中点击"生成共享"按钮创建</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>共享码</th>
+              <th>类型</th>
+              <th>名称</th>
+              <th>访问次数</th>
+              <th>状态</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${shares.map(share => {
+              const statusText = share.status === 'active' ? '有效' :
+                                share.status === 'expired' ? '已过期' : '达到限制';
+              const statusClass = share.status === 'active' ? 'status-success' : 'status-warning';
+              const shareTypeMap = {
+                'assignment': '作业文件',
+                'file': '单个文件',
+                'directory': '目录',
+                'multiple': '多个文件'
+              };
+              const shareTypeText = shareTypeMap[share.share_type] || share.share_type;
+              const accessText = share.max_access > 0
+                ? `${share.access_count}/${share.max_access}`
+                : share.access_count;
+
+              return `
+                <tr>
+                  <td><code style="font-weight: bold; letter-spacing: 1px;">${share.share_code}</code></td>
+                  <td>${shareTypeText}</td>
+                  <td>${share.share_name || '-'}</td>
+                  <td>${accessText}</td>
+                  <td>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                  </td>
+                  <td>${new Date(share.created_at).toLocaleString('zh-CN')}</td>
+                  <td>
+                    <button onclick="copyShareLink('${share.share_code}')" class="secondary">复制链接</button>
+                    <button onclick="deleteShare(${share.id})" class="danger">删除</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 显示创建共享模态框
+    function showCreateShareModal(assignmentId) {
+      currentShareAssignmentId = assignmentId;
+      document.getElementById('createShareModal').classList.add('active');
+
+      // 重置表单
+      document.getElementById('shareType').value = 'assignment';
+      document.getElementById('shareDescription').value = '';
+      document.getElementById('shareMaxAccess').value = 0;
+      document.getElementById('shareExpireAt').value = '';
+    }
+
+    // 切换共享选项（预留，目前只支持作业共享）
+    function toggleShareOptions() {
+      // 预留功能，将来可以添加单个文件共享
+    }
+
+    // 创建共享
+    async function createShare() {
+      const shareType = document.getElementById('shareType').value;
+      const description = document.getElementById('shareDescription').value.trim();
+      const maxAccess = parseInt(document.getElementById('shareMaxAccess').value) || 0;
+      const expireAt = document.getElementById('shareExpireAt').value || null;
+
+      try {
+        const response = await fetch('/api/shares/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shareType,
+            assignmentId: currentShareAssignmentId,
+            description,
+            maxAccess,
+            expireAt
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          closeModal('createShareModal');
+
+          // 显示共享码结果
+          const shareUrl = `${window.location.origin}/share.html?code=${data.shareCode}`;
+          document.getElementById('generatedShareCode').value = data.shareCode;
+          document.getElementById('generatedShareUrl').value = shareUrl;
+          document.getElementById('shareResultModal').classList.add('active');
+
+          // 刷新共享列表
+          await loadShares();
+        } else {
+          alert('生成共享失败：' + data.message);
+        }
+      } catch (error) {
+        alert('生成共享失败，请重试');
+        console.error('创建共享失败:', error);
+      }
+    }
+
+    // 复制共享码
+    function copyShareCode() {
+      const input = document.getElementById('generatedShareCode');
+      input.select();
+      document.execCommand('copy');
+      alert('共享码已复制到剪贴板');
+    }
+
+    // 复制共享链接
+    function copyShareUrl() {
+      const input = document.getElementById('generatedShareUrl');
+      input.select();
+      document.execCommand('copy');
+      alert('共享链接已复制到剪贴板');
+    }
+
+    // 复制共享链接（从列表）
+    function copyShareLink(shareCode) {
+      const shareUrl = `${window.location.origin}/share.html?code=${shareCode}`;
+      const tempInput = document.createElement('input');
+      tempInput.value = shareUrl;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      alert('共享链接已复制到剪贴板');
+    }
+
+    // 删除共享
+    async function deleteShare(shareId) {
+      if (!confirm('确定要删除这个共享吗？删除后共享码将失效。')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/shares/${shareId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('共享已删除');
+          await loadShares();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除共享失败:', error);
+      }
+    }
+
+    // ==================== 教学资源管理函数 ====================
+
+    let currentServerPath = '/';
+    let selectedServerItems = [];
+
+    // 加载资源列表 - 文件浏览器模式
+    let currentResourcePath = '';
+
+    async function loadResources() {
+      await browseResources(currentResourcePath);
+    }
+
+    async function browseResources(dirPath) {
+      currentResourcePath = dirPath || '';
+      try {
+        const response = await fetch('/api/resources/browse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dirPath: currentResourcePath || '/' })
+        });
+        const data = await response.json();
+        if (data.success) {
+          currentResourcePath = data.currentPath === '/' ? '' : data.currentPath;
+          updateResourceBreadcrumb(currentResourcePath);
+          displayFileBrowser(data.items);
+        } else {
+          // Fallback to flat resource list
+          const res2 = await fetch('/api/resources');
+          const data2 = await res2.json();
+          if (data2.success) {
+            displayFileBrowserFromResources(data2.resources);
+          }
+        }
+      } catch (error) {
+        console.error('浏览资源失败:', error);
+        // Fallback
+        try {
+          const res2 = await fetch('/api/resources');
+          const data2 = await res2.json();
+          if (data2.success) {
+            displayFileBrowserFromResources(data2.resources);
+          }
+        } catch (e) { console.error(e); }
+      }
+    }
+
+    function updateResourceBreadcrumb(path) {
+      const container = document.getElementById('resourceBreadcrumb');
+      let html = '<span onclick="browseResources(\'\')" style="cursor: pointer; color: #667eea;">根目录</span>';
+      if (path) {
+        const parts = path.replace(/^\//, '').split('/').filter(p => p);
+        let accumulated = '';
+        parts.forEach((part, i) => {
+          accumulated += '/' + part;
+          const p = accumulated;
+          html += ' <span style="color: #999;">/</span> ';
+          if (i === parts.length - 1) {
+            html += `<span style="color: #333; font-weight: bold;">${part}</span>`;
+          } else {
+            html += `<span onclick="browseResources('${p}')" style="cursor: pointer; color: #667eea;">${part}</span>`;
+          }
+        });
+      }
+      container.innerHTML = html;
+    }
+
+    function displayFileBrowser(items) {
+      const container = document.getElementById('resourceFileBrowser');
+
+      if (items.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">此目录为空</td></tr>';
+        return;
+      }
+
+      // Sort: directories first, then files
+      items.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      container.innerHTML = (currentResourcePath ? `
+        <tr style="cursor: pointer;" onclick="browseResources('${getParentPath(currentResourcePath)}')">
+          <td></td>
+          <td>&#x1F4C2; ..</td>
+          <td>-</td>
+          <td>-</td>
+          <td>-</td>
+          <td></td>
+        </tr>
+      ` : '') + items.map(item => {
+        const sizeText = item.isDirectory ? '-' : formatFileSize(item.size);
+        const icon = item.isDirectory ? '&#x1F4C1;' : '&#x1F4C4;';
+        const typeText = item.isDirectory ? '文件夹' : '文件';
+        const escapedPath = item.path.replace(/'/g, "\\'");
+        const escapedName = item.name.replace(/'/g, "\\'");
+        return `
+          <tr>
+            <td><input type="checkbox" class="resource-file-checkbox" value="${item.path}" ${item.isDirectory ? 'data-is-dir="true"' : ''} onchange="updateResourceBatchActions()"></td>
+            <td style="cursor: ${item.isDirectory ? 'pointer' : 'default'};" ${item.isDirectory ? `onclick="browseResources('${escapedPath}')"` : ''}>
+              ${icon} ${item.name}
+            </td>
+            <td>${typeText}</td>
+            <td>${sizeText}</td>
+            <td>${item.modifiedAt ? new Date(item.modifiedAt).toLocaleString('zh-CN') : '-'}</td>
+            <td>
+              ${item.isDirectory
+                ? `<button onclick="showRenameResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">重命名</button>
+                   <button onclick="shareResourceToClass('directory', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">班级共享</button>
+                   <button onclick="shareServerItem('directory', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">口令共享</button>
+                   <button onclick="deleteResourceByPath('${escapedPath}')" class="danger" style="margin: 0; padding: 4px 8px; font-size: 12px;">删除</button>`
+                : `<button onclick="showRenameResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">重命名</button>
+                   <button onclick="shareResourceToClass('file', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">班级共享</button>
+                   <button onclick="shareServerItem('file', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">口令共享</button>
+                   <button onclick="deleteResourceByPath('${escapedPath}')" class="danger" style="margin: 0; padding: 4px 8px; font-size: 12px;">删除</button>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function displayFileBrowserFromResources(resources) {
+      const container = document.getElementById('resourceFileBrowser');
+      if (resources.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: #666;">暂无教学资源，点击"上传文件"按钮添加</td></tr>';
+        return;
+      }
+      container.innerHTML = resources.map(r => {
+        const icon = r.is_folder ? '&#x1F4C1;' : '&#x1F4C4;';
+        const escapedPath = r.file_path.replace(/'/g, "\\'");
+        const escapedName = r.resource_name.replace(/'/g, "\\'");
+        return `
+          <tr>
+            <td><input type="checkbox" class="resource-file-checkbox" value="${r.file_path}" onchange="updateResourceBatchActions()"></td>
+            <td>${icon} ${r.resource_name}</td>
+            <td>${r.is_folder ? '文件夹' : '文件'}</td>
+            <td>${formatFileSize(r.file_size)}</td>
+            <td>${new Date(r.created_at).toLocaleString('zh-CN')}</td>
+            <td>
+              <button onclick="showRenameResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">重命名</button>
+              <button onclick="shareResourceToClass('${r.is_folder ? 'directory' : 'file'}', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">班级共享</button>
+              <button onclick="shareResource(${r.id}, '${escapedName}', '${escapedPath}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">口令共享</button>
+              <button onclick="deleteResource(${r.id})" class="danger" style="margin: 0; padding: 4px 8px; font-size: 12px;">删除</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getParentPath(path) {
+      const parts = path.replace(/^\//, '').split('/').filter(p => p);
+      parts.pop();
+      return parts.length > 0 ? '/' + parts.join('/') : '';
+    }
+
+    function toggleSelectAllResourceFiles(checkbox) {
+      document.querySelectorAll('.resource-file-checkbox').forEach(cb => cb.checked = checkbox.checked);
+      updateResourceBatchActions();
+    }
+
+    function updateResourceBatchActions() {
+      const checked = document.querySelectorAll('.resource-file-checkbox:checked');
+      const batchDiv = document.getElementById('resourceBatchActions');
+      batchDiv.style.display = checked.length > 0 ? 'block' : 'none';
+    }
+
+    function shareSelectedResourceFiles() {
+      const checkboxes = document.querySelectorAll('.resource-file-checkbox:checked');
+      if (checkboxes.length === 0) { alert('请选择文件'); return; }
+      const paths = Array.from(checkboxes).map(cb => cb.value);
+      if (paths.length === 1) {
+        const cb = checkboxes[0];
+        const isDir = cb.hasAttribute('data-is-dir');
+        const name = paths[0].split('/').pop();
+        shareServerItem(isDir ? 'directory' : 'file', paths[0], name);
+      } else {
+        shareServerItem('multiple', JSON.stringify(paths), `${paths.length}个文件`);
+      }
+    }
+
+    async function deleteSelectedResourceFiles() {
+      const checkboxes = document.querySelectorAll('.resource-file-checkbox:checked');
+      if (checkboxes.length === 0) { alert('请选择文件'); return; }
+
+      // 先检查是否有共享
+      const paths = Array.from(checkboxes).map(cb => cb.value);
+      let totalCodeShares = 0;
+      let totalClassShares = 0;
+
+      for (const filePath of paths) {
+        try {
+          const response = await fetch('/api/resources/delete-by-path', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath, forceDelete: false })
+          });
+          const data = await response.json();
+          if (data.hasShares) {
+            totalCodeShares += (data.codeShares || []).length;
+            totalClassShares += (data.classShares || []).length;
+          }
+        } catch (e) { console.error(e); }
+      }
+
+      let confirmMsg = `确定要删除选中的 ${checkboxes.length} 个项目吗？`;
+      if (totalCodeShares > 0 || totalClassShares > 0) {
+        confirmMsg += `\n\n⚠️ 警告：这些资源关联了 ${totalCodeShares + totalClassShares} 个共享`;
+        if (totalCodeShares > 0) confirmMsg += `\n  - 口令共享: ${totalCodeShares} 个`;
+        if (totalClassShares > 0) confirmMsg += `\n  - 班级共享: ${totalClassShares} 个`;
+        confirmMsg += '\n\n删除后这些共享将全部失效！';
+      }
+
+      if (!confirm(confirmMsg)) return;
+
+      // 执行删除
+      for (const cb of checkboxes) {
+        try {
+          await deleteResourceByPath(cb.value, true, true);
+        } catch (e) { console.error(e); }
+      }
+      await browseResources(currentResourcePath);
+      alert('删除完成');
+    }
+
+    async function deleteResourceByPath(filePath, silent, forceDelete = false) {
+      if (!silent && !forceDelete && !confirm('确定要删除这个文件吗？')) return;
+      try {
+        const response = await fetch('/api/resources/delete-by-path', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filePath, forceDelete })
+        });
+        const data = await response.json();
+
+        // 如果有关联共享，询问用户是否继续
+        if (data.hasShares && !forceDelete) {
+          let shareInfo = '该资源有以下关联共享：\n\n';
+          if (data.codeShares && data.codeShares.length > 0) {
+            shareInfo += '【口令共享】\n';
+            data.codeShares.forEach(s => {
+              shareInfo += `  - ${s.share_name || '未命名'} (${s.share_code})\n`;
+            });
+          }
+          if (data.classShares && data.classShares.length > 0) {
+            shareInfo += '【班级共享】\n';
+            data.classShares.forEach(s => {
+              shareInfo += `  - ${s.share_name} (${s.class_name})\n`;
+            });
+          }
+          shareInfo += '\n删除后这些共享将失效，确定要继续吗？';
+
+          if (confirm(shareInfo)) {
+            // 用户确认，强制删除
+            return deleteResourceByPath(filePath, silent, true);
+          }
+          return;
+        }
+
+        if (!silent) {
+          if (data.success) {
+            alert(data.message || '已删除');
+            await browseResources(currentResourcePath);
+          } else {
+            alert('删除失败: ' + data.message);
+          }
+        }
+      } catch (error) {
+        if (!silent) alert('删除失败');
+        console.error(error);
+      }
+    }
+
+    // 共享资源到班级（从文件浏览器）
+    function shareResourceToClass(type, path, name) {
+      // 弹出选择班级的对话框
+      if (allClasses.length === 0) {
+        alert('请先创建班级');
+        return;
+      }
+      window.pendingClassShare = { type, path, name };
+      document.getElementById('shareToClassResourcePath').value = path;
+      document.getElementById('shareToClassResourceType').value = type;
+      document.getElementById('shareToClassResourceName').value = name;
+      document.getElementById('shareToClassDescription').value = '';
+
+      // Populate class select in the share modal
+      const classOptions = allClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      // Use the existing shareToClassModal but let user pick class
+      shareToClassId = null;
+      document.getElementById('shareToClassName').textContent = '请选择班级';
+
+      // Add class selector if not already present
+      let classSelect = document.getElementById('shareToClassSelect');
+      if (!classSelect) {
+        const selectHtml = `<div class="form-group" id="shareToClassSelectGroup">
+          <label>选择班级</label>
+          <select id="shareToClassSelect" onchange="updateShareToClassName()" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <option value="">请选择班级</option>
+            ${classOptions}
+          </select>
+        </div>`;
+        const modal = document.getElementById('shareToClassModal').querySelector('.modal-content');
+        modal.insertAdjacentHTML('afterbegin', `<div id="shareToClassSelectWrapper">${selectHtml}</div>`);
+        // Move it after the title
+        const h2 = modal.querySelector('h2');
+        h2.after(document.getElementById('shareToClassSelectWrapper'));
+      } else {
+        classSelect.innerHTML = `<option value="">请选择班级</option>${classOptions}`;
+      }
+
+      // Hide the resource selection list since we already selected
+      const resourceList = document.getElementById('shareableResourcesList');
+      if (resourceList) resourceList.style.display = 'none';
+
+      document.getElementById('shareToClassModal').classList.add('active');
+    }
+
+    function updateShareToClassName() {
+      const select = document.getElementById('shareToClassSelect');
+      if (select && select.value) {
+        shareToClassId = parseInt(select.value);
+        const cls = allClasses.find(c => c.id === shareToClassId);
+        document.getElementById('shareToClassName').textContent = cls ? cls.name : '';
+      }
+    }
+
+    // 重命名资源
+    function showRenameResourceModal(filePath, currentName) {
+      document.getElementById('renameResourceOldPath').value = filePath;
+      document.getElementById('renameResourceNewName').value = currentName;
+      document.getElementById('renameResourceModal').classList.add('active');
+      // 自动选中文件名（不含扩展名）
+      const input = document.getElementById('renameResourceNewName');
+      input.focus();
+      const dotIndex = currentName.lastIndexOf('.');
+      if (dotIndex > 0) {
+        input.setSelectionRange(0, dotIndex);
+      } else {
+        input.select();
+      }
+    }
+
+    async function confirmRenameResource() {
+      const oldPath = document.getElementById('renameResourceOldPath').value;
+      const newName = document.getElementById('renameResourceNewName').value.trim();
+
+      if (!newName) {
+        alert('请输入新名称');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/resources/rename', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPath, newName })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          closeModal('renameResourceModal');
+          await browseResources(currentResourcePath);
+        } else {
+          alert('重命名失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('重命名失败:', error);
+        alert('重命名失败，请重试');
+      }
+    }
+
+    function showCreateFolderModalInBrowser() {
+      // Create folder in current browsing path
+      document.getElementById('createFolderModal').classList.add('active');
+      document.getElementById('newFolderName').value = '';
+    }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    // 显示上传资源模态框
+    async function showUploadResourceModal() {
+      document.getElementById('uploadResourceModal').classList.add('active');
+      document.getElementById('resourceFile').value = '';
+      // 显示当前路径
+      const display = document.getElementById('uploadTargetDisplay');
+      display.textContent = currentResourcePath ? currentResourcePath : '根目录';
+    }
+
+    // 显示创建文件夹模态框
+    function showCreateFolderModal() {
+      document.getElementById('createFolderModal').classList.add('active');
+      document.getElementById('newFolderName').value = '';
+    }
+
+    // 创建文件夹
+    async function createFolder() {
+      const folderName = document.getElementById('newFolderName').value.trim();
+
+      if (!folderName) {
+        alert('请输入文件夹名称');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/resources/folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folderName, parentPath: currentResourcePath || '' })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('文件夹创建成功');
+          closeModal('createFolderModal');
+          await browseResources(currentResourcePath);
+        } else {
+          alert('创建失败：' + data.message);
+        }
+      } catch (error) {
+        alert('创建失败，请重试');
+        console.error('创建文件夹失败:', error);
+      }
+    }
+
+    // 上传资源
+    async function uploadResource() {
+      const fileInput = document.getElementById('resourceFile');
+      const files = fileInput.files;
+
+      if (!files || files.length === 0) {
+        alert('请选择文件');
+        return;
+      }
+
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (currentResourcePath) {
+          formData.append('targetPath', currentResourcePath);
+        }
+
+        try {
+          const response = await fetch('/api/resources/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+          if (data.success) {
+            successCount++;
+          } else {
+            failCount++;
+            console.error('上传失败:', file.name, data.message);
+          }
+        } catch (error) {
+          failCount++;
+          console.error('上传失败:', file.name, error);
+        }
+      }
+
+      closeModal('uploadResourceModal');
+      if (failCount === 0) {
+        alert(`成功上传 ${successCount} 个文件`);
+      } else {
+        alert(`上传完成：成功 ${successCount} 个，失败 ${failCount} 个`);
+      }
+      await browseResources(currentResourcePath);
+    }
+
+    // 删除资源
+    async function deleteResource(resourceId) {
+      if (!confirm('确定要删除这个资源吗？')) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/resources/${resourceId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('资源已删除');
+          await loadResources();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除资源失败:', error);
+      }
+    }
+
+    // 显示浏览服务器模态框
+    function showBrowseServerModal() {
+      currentServerPath = '/';
+      selectedServerItems = [];
+      document.getElementById('browseServerModal').classList.add('active');
+      browseServerDirectory('/');
+    }
+
+    // 浏览服务器目录
+    async function browseServerDirectory(dirPath) {
+      try {
+        const response = await fetch('/api/resources/browse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dirPath })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          currentServerPath = data.currentPath;
+          displayServerFiles(data.items);
+          document.getElementById('currentPath').textContent = '当前路径: ' + currentServerPath;
+        } else {
+          alert('浏览失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('浏览目录失败:', error);
+        alert('浏览失败，请重试');
+      }
+    }
+
+    // 显示服务器文件列表
+    function displayServerFiles(items) {
+      const container = document.getElementById('serverFilesList');
+
+      if (items.length === 0) {
+        container.innerHTML = '<p class="info-text" style="padding: 20px; text-align: center;">目录为空</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table style="width: 100%;">
+          <thead>
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" onclick="toggleSelectAll(this)"></th>
+              <th>名称</th>
+              <th>类型</th>
+              <th>大小</th>
+              <th>修改时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map(item => {
+              const sizeText = item.isDirectory ? '-' : formatFileSize(item.size);
+              const icon = item.isDirectory ? '📁' : '📄';
+              return `
+                <tr>
+                  <td><input type="checkbox" class="item-checkbox" value="${item.path}" ${item.isDirectory ? 'data-is-dir="true"' : ''}></td>
+                  <td>${icon} ${item.name}</td>
+                  <td>${item.isDirectory ? '目录' : '文件'}</td>
+                  <td>${sizeText}</td>
+                  <td>${new Date(item.modifiedAt).toLocaleString('zh-CN')}</td>
+                  <td>
+                    ${item.isDirectory
+                      ? `<button onclick="browseServerDirectory('${item.path}')" class="secondary">打开</button>
+                         <button onclick="shareServerItem('directory', '${item.path}', '${item.name}')">共享目录</button>`
+                      : `<button onclick="shareServerItem('file', '${item.path}', '${item.name}')">共享文件</button>`
+                    }
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // 全选/取消全选
+    function toggleSelectAll(checkbox) {
+      const checkboxes = document.querySelectorAll('.item-checkbox');
+      checkboxes.forEach(cb => cb.checked = checkbox.checked);
+    }
+
+    // 返回上级目录
+    function goBackDirectory() {
+      if (currentServerPath === '/') {
+        return;
+      }
+
+      const parts = currentServerPath.split('/').filter(p => p);
+      parts.pop();
+      const parentPath = parts.length > 0 ? '/' + parts.join('/') : '/';
+      browseServerDirectory(parentPath);
+    }
+
+    // 批量选择文件
+    function selectMultipleFiles() {
+      alert('请勾选要共享的文件，然后点击"共享选中项"按钮');
+    }
+
+    // 共享选中的项
+    function shareSelectedItems() {
+      const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+
+      if (checkboxes.length === 0) {
+        alert('请至少选择一个文件或目录');
+        return;
+      }
+
+      const selectedPaths = Array.from(checkboxes).map(cb => cb.value);
+
+      if (selectedPaths.length === 1) {
+        const checkbox = checkboxes[0];
+        const isDir = checkbox.hasAttribute('data-is-dir');
+        const path = checkbox.value;
+        const name = path.split('/').pop();
+        shareServerItem(isDir ? 'directory' : 'file', path, name);
+      } else {
+        // 多个文件，使用multiple类型
+        const name = `${selectedPaths.length}个文件`;
+        shareServerItem('multiple', JSON.stringify(selectedPaths), name);
+      }
+    }
+
+    // 生成随机共享码
+    function generateRandomShareCode() {
+      const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // 共享服务器文件/目录
+    function shareServerItem(type, path, name) {
+      // 保存到全局变量
+      window.pendingShare = { type, path, name };
+
+      // 打开共享设置模态框
+      closeModal('browseServerModal');
+      document.getElementById('resourceShareName').value = name;
+      document.getElementById('resourceShareCustomCode').value = generateRandomShareCode();
+      document.getElementById('resourceShareDescription').value = '';
+      document.getElementById('resourceShareMaxAccess').value = 0;
+      document.getElementById('resourceShareExpireAt').value = '';
+      document.getElementById('createResourceShareModal').classList.add('active');
+    }
+
+    // 为上传的资源生成共享
+    function shareResource(resourceId, name, filePath) {
+      window.pendingShare = { type: 'file', path: filePath, name };
+
+      document.getElementById('resourceShareName').value = name;
+      document.getElementById('resourceShareCustomCode').value = generateRandomShareCode();
+      document.getElementById('resourceShareDescription').value = '';
+      document.getElementById('resourceShareMaxAccess').value = 0;
+      document.getElementById('resourceShareExpireAt').value = '';
+      document.getElementById('createResourceShareModal').classList.add('active');
+    }
+
+    // 创建资源共享
+    async function createResourceShare() {
+      if (!window.pendingShare) {
+        alert('没有待共享的资源');
+        return;
+      }
+
+      const shareName = document.getElementById('resourceShareName').value.trim();
+      const customCode = document.getElementById('resourceShareCustomCode').value.trim();
+      const description = document.getElementById('resourceShareDescription').value.trim();
+      const maxAccess = parseInt(document.getElementById('resourceShareMaxAccess').value) || 0;
+      const expireAt = document.getElementById('resourceShareExpireAt').value || null;
+
+      if (!shareName) {
+        alert('请输入共享名称');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/shares/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shareType: window.pendingShare.type,
+            resourceData: window.pendingShare.path,
+            shareName,
+            customCode: customCode || null,
+            description,
+            maxAccess,
+            expireAt
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          closeModal('createResourceShareModal');
+
+          // 显示共享码结果
+          const shareUrl = `${window.location.origin}/share.html?code=${data.shareCode}`;
+          document.getElementById('generatedShareCode').value = data.shareCode;
+          document.getElementById('generatedShareUrl').value = shareUrl;
+          document.getElementById('shareResultModal').classList.add('active');
+
+          // 刷新共享列表
+          await loadShares();
+
+          window.pendingShare = null;
+        } else {
+          alert('生成共享失败：' + data.message);
+        }
+      } catch (error) {
+        alert('生成共享失败，请重试');
+        console.error('创建资源共享失败:', error);
+      }
+    }
+    // ==================== 作业管理页面 - 班级作业 ====================
+
+    function populateClassSelect() {
+      const select = document.getElementById('classSelectForAssignment');
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">选择班级...</option>' +
+        allClasses.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      if (currentVal) select.value = currentVal;
+    }
+
+    async function loadClassAssignments() {
+      const select = document.getElementById('classSelectForAssignment');
+      if (!select) return;
+      const classId = select.value;
+      const container = document.getElementById('classAssignmentsList');
+
+      if (!classId) {
+        container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">请选择一个班级查看作业</p>';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/classes/${classId}/assignments`);
+        const data = await response.json();
+        if (data.success) {
+          displayClassAssignmentsList(data.assignments, classId);
+        }
+      } catch (error) {
+        console.error('加载班级作业失败:', error);
+      }
+    }
+
+    function displayClassAssignmentsList(assignments, classId) {
+      const container = document.getElementById('classAssignmentsList');
+      if (assignments.length === 0) {
+        container.innerHTML = '<p style="color: #666; text-align: center; padding: 20px;">该班级暂无作业</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>作业名称</th>
+              <th>密码</th>
+              <th>截止时间</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${assignments.map(a => {
+              const isExpired = new Date(a.deadline) < new Date();
+              return `
+                <tr>
+                  <td>${a.assignment_name}</td>
+                  <td><code>${a.password}</code></td>
+                  <td>${new Date(a.deadline).toLocaleString('zh-CN')}</td>
+                  <td>
+                    <span class="status-badge ${isExpired ? 'status-warning' : 'status-success'}">
+                      ${isExpired ? '已截止' : '进行中'}
+                    </span>
+                  </td>
+                  <td>
+                    <button onclick="viewSubmissions(${a.id})">查看提交</button>
+                    <button onclick="showEditAssignmentModal(${a.id}, '${a.assignment_name.replace(/'/g, "\\'")}', '${a.password}', '${a.deadline}', ${a.description ? `'${a.description.replace(/'/g, "\\'").replace(/\n/g, "\\n")}'` : 'null'})" class="secondary">编辑</button>
+                    <button onclick="downloadAssignment(${a.id})" class="secondary">批量下载</button>
+                    <button onclick="showCreateShareModal(${a.id})" class="secondary">生成共享</button>
+                    <button onclick="deleteAssignment(${a.id})" class="danger">删除</button>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function showCreateAssignmentModalNew() {
+      const select = document.getElementById('classSelectForAssignment');
+      const classId = select ? select.value : '';
+      if (!classId) {
+        alert('请先选择一个班级');
+        return;
+      }
+      currentClass = allClasses.find(c => c.id === parseInt(classId));
+      showCreateAssignmentModal(parseInt(classId));
+    }
+
+    // ==================== 资源共享页面 - 所有班级共享 ====================
+
+    async function loadAllClassShares() {
+      const container = document.getElementById('allClassSharesList');
+      if (!container) return;
+
+      let allShares = [];
+      try {
+        for (const cls of allClasses) {
+          const response = await fetch(`/api/classes/${cls.id}/shares`);
+          const data = await response.json();
+          if (data.success && data.shares.length > 0) {
+            data.shares.forEach(s => {
+              s.className = cls.name;
+              s.classId = cls.id;
+            });
+            allShares = allShares.concat(data.shares);
+          }
+        }
+      } catch (error) {
+        console.error('加载班级共享失败:', error);
+      }
+
+      if (allShares.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state" style="padding: 20px; text-align: center;">
+            <div class="icon">&#x1F517;</div>
+            <p style="color: #666;">暂无班级共享</p>
+            <p style="font-size: 13px; color: #999; margin-top: 5px;">在"教学资源"页面中点击"班级共享"按钮将资源共享给班级</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>班级</th>
+              <th>资源名称</th>
+              <th>类型</th>
+              <th>说明</th>
+              <th>共享时间</th>
+              <th style="width: 80px;">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${allShares.map(s => `
+              <tr>
+                <td><span style="background: #e7f3ff; padding: 2px 8px; border-radius: 3px; font-size: 12px;">${s.className}</span></td>
+                <td>${s.share_name}</td>
+                <td>${s.share_type === 'directory' ? '文件夹' : '文件'}</td>
+                <td>${s.description || '-'}</td>
+                <td>${new Date(s.created_at).toLocaleString('zh-CN')}</td>
+                <td>
+                  <button onclick="deleteClassShareFromAll(${s.id})" class="danger" style="margin: 0; padding: 5px 10px; font-size: 12px;">删除</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    async function deleteClassShareFromAll(shareId) {
+      if (!confirm('确定要删除这个共享吗？删除后学生将无法再看到此资源。')) return;
+      try {
+        const response = await fetch(`/api/class-shares/${shareId}`, { method: 'DELETE' });
+        const data = await response.json();
+        if (data.success) {
+          alert('共享已删除');
+          await loadAllClassShares();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        console.error('删除班级共享失败:', error);
+        alert('删除失败，请重试');
+      }
+    }
+
+  </script>
+</body>
+</html>

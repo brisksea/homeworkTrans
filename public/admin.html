@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理员端 - 作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    h1, h2, h3 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .login-card {
+      max-width: 400px;
+      margin: 100px auto;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+      margin-top: 5px;
+    }
+
+    button:hover {
+      background: #5568d3;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    .teacher-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border-left: 4px solid #667eea;
+    }
+
+    .teacher-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .teacher-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .teacher-info {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .classes-list {
+      padding-left: 20px;
+    }
+
+    .class-item {
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .class-item.deleted {
+      background: #f8d7da;
+      border-left: 3px solid #dc3545;
+    }
+
+    .class-name {
+      flex: 1;
+    }
+
+    button.danger {
+      background: #dc3545;
+    }
+
+    button.danger:hover {
+      background: #c82333;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: 10px;
+    }
+
+    .badge-primary {
+      background: #e7f3ff;
+      color: #0066cc;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .info-text {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+
+    .modal.active {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.secondary:hover {
+      background: #5a6268;
+    }
+
+    button.warning {
+      background: #ffc107;
+      color: #333;
+    }
+
+    button.warning:hover {
+      background: #e0a800;
+    }
+  </style>
+</head>
+<body>
+  <!-- 登录页面 -->
+  <div id="loginPage">
+    <div class="card login-card">
+      <h1 style="text-align: center; color: #667eea;">管理员登录</h1>
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="loginUsername" placeholder="请输入用户名">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="loginPassword" placeholder="请输入密码">
+      </div>
+      <button onclick="login()" style="width: 100%;">登录</button>
+    </div>
+  </div>
+
+  <!-- 主页面 -->
+  <div id="mainPage" class="hidden">
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <h1>🛡️ 系统管理后台</h1>
+          <div>
+            <span id="adminName" style="margin-right: 20px; color: #666;"></span>
+            <button onclick="logout()">退出登录</button>
+          </div>
+        </div>
+
+        <!-- 统计信息 -->
+        <h2>系统概览</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">教师总数</div>
+            <div class="stat-number" id="teacherCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">班级总数</div>
+            <div class="stat-number" id="classCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">学生总数</div>
+            <div class="stat-number" id="studentCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">作业总数</div>
+            <div class="stat-number" id="assignmentCount">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">文件上传数</div>
+            <div class="stat-number" id="uploadCount">0</div>
+          </div>
+        </div>
+
+        <!-- 教师列表 -->
+        <h2>教师列表</h2>
+        <div id="teachersList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 重置密码模态框 -->
+  <div id="resetPasswordModal" class="modal">
+    <div class="modal-content">
+      <h2>重置教师密码</h2>
+      <p class="info-text">为教师 <strong id="resetTeacherName"></strong> 设置新密码</p>
+      <div class="form-group">
+        <label>新密码</label>
+        <input type="password" id="resetNewPassword" placeholder="请输入新密码（至少6位）">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input type="password" id="resetConfirmPassword" placeholder="请再次输入新密码">
+      </div>
+      <button onclick="confirmResetPassword()">确认重置</button>
+      <button onclick="closeModal('resetPasswordModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 删除班级确认模态框 -->
+  <div id="deleteClassModal" class="modal">
+    <div class="modal-content">
+      <h2>⚠️ 彻底删除班级</h2>
+      <p class="info-text" id="deleteClassMessage" style="margin: 20px 0;"></p>
+      <p style="color: #dc3545; font-weight: bold; margin-bottom: 20px;">
+        此操作将删除：<br>
+        • 班级的所有学生<br>
+        • 班级的所有作业<br>
+        • 所有已提交的文件<br>
+        <br>
+        此操作不可恢复！
+      </p>
+      <button onclick="confirmHardDeleteClass()" class="danger">确认彻底删除</button>
+      <button onclick="closeModal('deleteClassModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <script>
+    let currentAdmin = null;
+    let resetTeacherId = null; // 待重置密码的教师ID
+    let deleteClassId = null; // 待删除的班级ID
+
+    // 页面加载时检查登录状态
+    window.onload = async function() {
+      const response = await fetch('/api/admin/check');
+      const data = await response.json();
+
+      if (data.loggedIn) {
+        currentAdmin = data.admin;
+        showMainPage();
+      }
+    };
+
+    async function login() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (!username || !password) {
+        alert('请输入用户名和密码');
+        return;
+      }
+
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        currentAdmin = data.admin;
+        showMainPage();
+      } else {
+        alert(data.message);
+      }
+    }
+
+    async function logout() {
+      await fetch('/api/admin/logout', { method: 'POST' });
+      currentAdmin = null;
+      document.getElementById('mainPage').classList.add('hidden');
+      document.getElementById('loginPage').classList.remove('hidden');
+    }
+
+    async function showMainPage() {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('mainPage').classList.remove('hidden');
+      document.getElementById('adminName').textContent = `欢迎，${currentAdmin.name}`;
+
+      await loadStats();
+      await loadTeachers();
+    }
+
+    async function loadStats() {
+      const response = await fetch('/api/admin/stats');
+      const data = await response.json();
+
+      if (data.success) {
+        document.getElementById('teacherCount').textContent = data.stats.teacherCount;
+        document.getElementById('classCount').textContent = data.stats.classCount;
+        document.getElementById('studentCount').textContent = data.stats.studentCount;
+        document.getElementById('assignmentCount').textContent = data.stats.assignmentCount;
+        document.getElementById('uploadCount').textContent = data.stats.uploadCount;
+      }
+    }
+
+    async function loadTeachers() {
+      const response = await fetch('/api/admin/teachers');
+      const data = await response.json();
+
+      if (data.success) {
+        displayTeachers(data.teachers);
+      }
+    }
+
+    function displayTeachers(teachers) {
+      const container = document.getElementById('teachersList');
+
+      if (teachers.length === 0) {
+        container.innerHTML = '<p class="info-text">暂无教师</p>';
+        return;
+      }
+
+      container.innerHTML = teachers.map(teacher => {
+        const classCount = teacher.classes.length;
+        return `
+          <div class="teacher-card">
+            <div class="teacher-header">
+              <div>
+                <span class="teacher-name">👨‍🏫 ${teacher.name}</span>
+                <span class="badge badge-primary">${classCount} 个班级</span>
+              </div>
+              <div>
+                <button onclick="showResetPasswordModal(${teacher.id}, '${teacher.name}')" class="warning">重置密码</button>
+              </div>
+            </div>
+            <div class="teacher-info">
+              <strong>用户名：</strong>${teacher.username} &nbsp;&nbsp;
+              <strong>注册时间：</strong>${new Date(teacher.created_at).toLocaleString('zh-CN')}
+            </div>
+            ${classCount > 0 ? `
+              <div>
+                <strong style="color: #666; font-size: 14px;">管理的班级：</strong>
+                <div class="classes-list">
+                  ${teacher.classes.map(cls => `
+                    <div class="class-item ${cls.is_deleted ? 'deleted' : ''}">
+                      <div class="class-name">
+                        ${cls.is_deleted ? '🗑️' : '📚'} ${cls.name}
+                        ${cls.is_deleted ? '<span style="color: #dc3545; margin-left: 10px;">[已删除]</span>' : ''}
+                        <span style="color: #999; font-size: 12px; margin-left: 10px;">
+                          (创建于 ${new Date(cls.created_at).toLocaleString('zh-CN')})
+                        </span>
+                      </div>
+                      ${cls.is_deleted ? `
+                        <button onclick="hardDeleteClass(${cls.id}, '${cls.name}')" class="danger" style="padding: 4px 12px; font-size: 12px;">
+                          彻底删除
+                        </button>
+                      ` : ''}
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : '<p class="info-text">该教师暂未创建班级</p>'}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function showResetPasswordModal(teacherId, teacherName) {
+      resetTeacherId = teacherId;
+      document.getElementById('resetTeacherName').textContent = teacherName;
+      document.getElementById('resetNewPassword').value = '';
+      document.getElementById('resetConfirmPassword').value = '';
+      document.getElementById('resetPasswordModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    async function confirmResetPassword() {
+      const newPassword = document.getElementById('resetNewPassword').value.trim();
+      const confirmPassword = document.getElementById('resetConfirmPassword').value.trim();
+
+      if (!newPassword || !confirmPassword) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        alert('新密码长度至少6位');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert('两次输入的新密码不一致');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin/reset-teacher-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ teacherId: resetTeacherId, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('密码重置成功');
+          closeModal('resetPasswordModal');
+          resetTeacherId = null;
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('重置密码失败，请重试');
+        console.error('重置密码失败:', error);
+      }
+    }
+
+    function hardDeleteClass(classId, className) {
+      deleteClassId = classId;
+      document.getElementById('deleteClassMessage').innerHTML =
+        `确定要彻底删除班级"<strong>${className}</strong>"吗？`;
+      document.getElementById('deleteClassModal').classList.add('active');
+    }
+
+    async function confirmHardDeleteClass() {
+      if (!deleteClassId) return;
+
+      try {
+        const response = await fetch(`/api/admin/classes/${deleteClassId}`, {
+          method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('班级已彻底删除');
+          closeModal('deleteClassModal');
+          deleteClassId = null;
+          await loadTeachers();
+          await loadStats();
+        } else {
+          alert('删除失败：' + data.message);
+        }
+      } catch (error) {
+        alert('删除失败，请重试');
+        console.error('删除班级失败:', error);
+      }
+    }
+  </script>
+</body>
+</html>

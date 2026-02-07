@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      text-align: center;
+      color: white;
+    }
+
+    h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    p {
+      font-size: 18px;
+      margin-bottom: 50px;
+      opacity: 0.9;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 30px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .card-button {
+      background: white;
+      border-radius: 15px;
+      padding: 40px;
+      width: 280px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-decoration: none;
+      color: #333;
+    }
+
+    .card-button:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #667eea;
+    }
+
+    .card-desc {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 60px;
+      color: white;
+      opacity: 0.7;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 作业上传系统</h1>
+    <p>请选择您的身份进入系统</p>
+
+    <div class="buttons">
+      <a href="/teacher.html" class="card-button">
+        <div class="icon">&#x1F468;&#x200D;&#x1F3EB;</div>
+        <div class="card-title">教师端</div>
+        <div class="card-desc">
+          管理班级、学生信息<br>
+          创建作业、查看提交情况
+        </div>
+      </a>
+
+      <a href="/student-portal.html" class="card-button">
+        <div class="icon">&#x1F468;&#x200D;&#x1F393;</div>
+        <div class="card-title" style="color: #11998e;">学生门户</div>
+        <div class="card-desc">
+          登录查看作业任务<br>
+          上传作业、下载资源
+        </div>
+      </a>
+
+      <a href="/student.html" class="card-button">
+        <div class="icon">&#x1F4E4;</div>
+        <div class="card-title">快速上传</div>
+        <div class="card-desc">
+          使用上传密码<br>
+          直接提交作业文件
+        </div>
+      </a>
+
+      <a href="/share.html" class="card-button">
+        <div class="icon">&#x1F517;</div>
+        <div class="card-title">共享访问</div>
+        <div class="card-desc">
+          输入共享码<br>
+          下载共享文件
+        </div>
+      </a>
+
+      <a href="/admin.html" class="card-button">
+        <div class="icon">&#x1F6E1;&#xFE0F;</div>
+        <div class="card-title">管理员</div>
+        <div class="card-desc">
+          查看系统统计<br>
+          管理教师账号和班级
+        </div>
+      </a>
+    </div>
+
+  </div>
+</body>
+</html>

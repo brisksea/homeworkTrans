@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>共享访问 - 作业上传系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      text-align: center;
+      letter-spacing: 2px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      color: white;
+    }
+
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+    }
+
+    .share-info {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-item:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .info-value {
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-expired {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-limited {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .back-link a {
+      color: #667eea;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    .description {
+      background: #e7f3ff;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .description-title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .description-content {
+      color: #555;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    /* 文件列表样式 */
+    .file-list-section {
+      margin-bottom: 20px;
+    }
+
+    .file-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .file-list-title {
+      font-weight: 600;
+      color: #333;
+      font-size: 16px;
+    }
+
+    .file-list-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid #667eea;
+      color: #667eea;
+    }
+
+    .btn-outline:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-outline:disabled {
+      border-color: #ccc;
+      color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-outline:disabled:hover {
+      background: white;
+    }
+
+    .file-list {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.2s;
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    .file-item:hover {
+      background: #f8f9fa;
+    }
+
+    .file-item input[type="checkbox"] {
+      margin-right: 12px;
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .file-icon {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      color: #333;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      color: #999;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .file-download-btn {
+      padding: 4px 10px;
+      font-size: 12px;
+      background: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .file-download-btn:hover {
+      background: #218838;
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #666;
+      flex-wrap: wrap;
+    }
+
+    .breadcrumb-item {
+      color: #667eea;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumb-separator {
+      color: #999;
+    }
+
+    .breadcrumb-current {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 30px;
+      color: #666;
+    }
+
+    .empty-message {
+      text-align: center;
+      padding: 30px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .select-all-wrapper {
+      padding: 10px 15px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+    }
+
+    .select-all-wrapper label {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .select-all-wrapper input {
+      margin-right: 10px;
+    }
+
+    .selected-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- 输入共享码界面 -->
+    <div id="codeInputSection">
+      <h1>共享访问</h1>
+      <p class="subtitle">输入共享码访问文件或作业</p>
+
+      <div id="errorMessage" class="error-message hidden"></div>
+
+      <div class="form-group">
+        <label for="shareCode">共享码</label>
+        <input type="text" id="shareCode" placeholder="请输入共享码">
+      </div>
+
+      <button class="btn btn-primary" onclick="verifyShareCode()">访问共享内容</button>
+
+      <div class="back-link">
+        <a href="/">返回首页</a>
+      </div>
+    </div>
+
+    <!-- 共享信息显示界面 -->
+    <div id="shareInfoSection" class="hidden">
+      <h1>共享内容</h1>
+      <p class="subtitle" id="shareTypeText"></p>
+
+      <div id="successMessage" class="success-message hidden"></div>
+
+      <!-- 描述信息 -->
+      <div id="descriptionSection" class="description hidden">
+        <div class="description-title">描述</div>
+        <div class="description-content" id="descriptionContent"></div>
+      </div>
+
+      <!-- 共享信息 -->
+      <div class="share-info">
+        <div class="info-item">
+          <span class="info-label">共享类型</span>
+          <span class="info-value" id="shareType"></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">创建者</span>
+          <span class="info-value" id="teacherName"></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">访问次数</span>
+          <span class="info-value" id="accessInfo"></span>
+        </div>
+        <div class="info-item" id="expireItem" class="hidden">
+          <span class="info-label">过期时间</span>
+          <span class="info-value" id="expireTime"></span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">状态</span>
+          <span class="info-value" id="shareStatus"></span>
+        </div>
+      </div>
+
+      <!-- 目录文件列表 -->
+      <div id="fileListSection" class="file-list-section hidden">
+        <div class="file-list-header">
+          <span class="file-list-title">文件列表</span>
+          <div class="file-list-actions">
+            <button class="btn-sm btn-outline" id="downloadSelectedBtn" onclick="downloadSelected()" disabled>
+              下载选中 (<span id="selectedCount">0</span>)
+            </button>
+            <button class="btn-sm btn-outline" onclick="downloadAll()">下载全部</button>
+          </div>
+        </div>
+        <div id="breadcrumb" class="breadcrumb hidden"></div>
+        <div class="file-list" id="fileList">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+
+      <button class="btn btn-success" id="downloadAllBtn" onclick="downloadShare()">下载文件</button>
+
+      <div class="back-link">
+        <a href="javascript:void(0)" onclick="resetPage()">访问其他共享</a> |
+        <a href="/">返回首页</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentShareCode = '';
+    let currentShareType = '';
+    let currentPath = '';
+    let selectedFiles = new Set();
+
+    // 从URL获取共享码
+    window.onload = function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const shareCode = urlParams.get('code');
+      if (shareCode) {
+        document.getElementById('shareCode').value = shareCode;
+        verifyShareCode();
+      }
+    };
+
+    // 验证共享码
+    async function verifyShareCode() {
+      const shareCode = document.getElementById('shareCode').value.trim();
+
+      if (!shareCode) {
+        showError('请输入共享码');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/shares/${shareCode}/info`);
+        const data = await response.json();
+
+        if (!data.success) {
+          showError(data.message);
+          return;
+        }
+
+        // 保存共享码和类型
+        currentShareCode = shareCode;
+        currentShareType = data.share.shareType;
+
+        // 显示共享信息
+        displayShareInfo(data.share);
+
+        // 切换界面
+        document.getElementById('codeInputSection').classList.add('hidden');
+        document.getElementById('shareInfoSection').classList.remove('hidden');
+
+        // 如果是目录类型，加载文件列表
+        if (currentShareType === 'directory') {
+          document.getElementById('fileListSection').classList.remove('hidden');
+          document.getElementById('downloadAllBtn').classList.add('hidden');
+          loadFileList('');
+        }
+
+      } catch (error) {
+        console.error('验证失败:', error);
+        showError('验证失败，请稍后重试');
+      }
+    }
+
+    // 显示共享信息
+    function displayShareInfo(share) {
+      // 共享类型
+      const shareTypeMap = {
+        'assignment': '作业文件',
+        'file': '单个文件',
+        'directory': '目录',
+        'multiple': '多个文件'
+      };
+      const shareTypeText = shareTypeMap[share.shareType] || share.shareType;
+      document.getElementById('shareType').textContent = shareTypeText;
+      document.getElementById('shareTypeText').textContent = share.shareName || shareTypeText;
+
+      // 创建者
+      document.getElementById('teacherName').textContent = share.teacherName || '未知';
+
+      // 访问次数
+      const accessText = share.maxAccess > 0
+        ? `${share.accessCount} / ${share.maxAccess}`
+        : `${share.accessCount}（不限）`;
+      document.getElementById('accessInfo').textContent = accessText;
+
+      // 过期时间
+      if (share.expireAt) {
+        const expireDate = new Date(share.expireAt);
+        document.getElementById('expireTime').textContent = expireDate.toLocaleString('zh-CN');
+        document.getElementById('expireItem').classList.remove('hidden');
+      }
+
+      // 状态
+      let statusHtml = '<span class="status-badge status-active">有效</span>';
+      document.getElementById('shareStatus').innerHTML = statusHtml;
+
+      // 描述
+      if (share.description) {
+        document.getElementById('descriptionContent').textContent = share.description;
+        document.getElementById('descriptionSection').classList.remove('hidden');
+      }
+    }
+
+    // 加载文件列表
+    async function loadFileList(subPath) {
+      currentPath = subPath;
+      selectedFiles.clear();
+      updateSelectedCount();
+
+      const fileListDiv = document.getElementById('fileList');
+      fileListDiv.innerHTML = '<div class="loading">加载中...</div>';
+
+      try {
+        let url = `/api/shares/${currentShareCode}/files`;
+        if (subPath) {
+          url += `?subPath=${encodeURIComponent(subPath)}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!data.success) {
+          fileListDiv.innerHTML = `<div class="empty-message">${data.message}</div>`;
+          return;
+        }
+
+        // 更新面包屑
+        updateBreadcrumb(subPath);
+
+        // 渲染文件列表
+        renderFileList(data.files);
+
+      } catch (error) {
+        console.error('加载文件列表失败:', error);
+        fileListDiv.innerHTML = '<div class="empty-message">加载失败，请重试</div>';
+      }
+    }
+
+    // 更新面包屑导航
+    function updateBreadcrumb(subPath) {
+      const breadcrumbDiv = document.getElementById('breadcrumb');
+
+      if (!subPath) {
+        breadcrumbDiv.classList.add('hidden');
+        return;
+      }
+
+      breadcrumbDiv.classList.remove('hidden');
+
+      const parts = subPath.split('/').filter(p => p);
+      let html = `<span class="breadcrumb-item" onclick="loadFileList('')">根目录</span>`;
+
+      let currentPathBuild = '';
+      parts.forEach((part, index) => {
+        currentPathBuild += (currentPathBuild ? '/' : '') + part;
+        html += `<span class="breadcrumb-separator">/</span>`;
+
+        if (index === parts.length - 1) {
+          html += `<span class="breadcrumb-current">${part}</span>`;
+        } else {
+          const pathForClick = currentPathBuild;
+          html += `<span class="breadcrumb-item" onclick="loadFileList('${pathForClick}')">${part}</span>`;
+        }
+      });
+
+      breadcrumbDiv.innerHTML = html;
+    }
+
+    // 渲染文件列表
+    function renderFileList(files) {
+      const fileListDiv = document.getElementById('fileList');
+
+      if (!files || files.length === 0) {
+        fileListDiv.innerHTML = '<div class="empty-message">此目录为空</div>';
+        return;
+      }
+
+      let html = `
+        <div class="select-all-wrapper">
+          <label>
+            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+            全选
+          </label>
+          <span class="selected-count" id="selectedCountText">已选择 0 个文件</span>
+        </div>
+      `;
+
+      files.forEach(file => {
+        const icon = file.isDirectory ? '📁' : getFileIcon(file.name);
+        const sizeText = file.isDirectory ? '' : formatFileSize(file.size);
+
+        html += `
+          <div class="file-item">
+            <input type="checkbox"
+              class="file-checkbox"
+              data-path="${escapeHtml(file.path)}"
+              data-is-dir="${file.isDirectory}"
+              onchange="toggleFileSelection(this)">
+            <span class="file-icon">${icon}</span>
+            <div class="file-info">
+              ${file.isDirectory
+                ? `<div class="file-name" style="cursor:pointer;color:#667eea;" onclick="loadFileList('${escapeHtml(file.path)}')">${escapeHtml(file.name)}</div>`
+                : `<div class="file-name">${escapeHtml(file.name)}</div>`
+              }
+              ${sizeText ? `<div class="file-size">${sizeText}</div>` : ''}
+            </div>
+            ${!file.isDirectory
+              ? `<button class="file-download-btn" onclick="downloadSingleFile('${escapeHtml(file.path)}')">下载</button>`
+              : ''
+            }
+          </div>
+        `;
+      });
+
+      fileListDiv.innerHTML = html;
+    }
+
+    // 获取文件图标
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      const iconMap = {
+        'pdf': '📄',
+        'doc': '📝', 'docx': '📝',
+        'xls': '📊', 'xlsx': '📊',
+        'ppt': '📽️', 'pptx': '📽️',
+        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'bmp': '🖼️',
+        'mp3': '🎵', 'wav': '🎵', 'flac': '🎵',
+        'mp4': '🎬', 'avi': '🎬', 'mkv': '🎬', 'mov': '🎬',
+        'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦', 'gz': '📦',
+        'txt': '📃',
+        'html': '🌐', 'htm': '🌐',
+        'js': '⚙️', 'css': '🎨', 'json': '📋',
+        'py': '🐍', 'java': '☕', 'c': '💻', 'cpp': '💻', 'h': '💻'
+      };
+      return iconMap[ext] || '📄';
+    }
+
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // HTML转义
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // 切换文件选择
+    function toggleFileSelection(checkbox) {
+      const path = checkbox.dataset.path;
+      if (checkbox.checked) {
+        selectedFiles.add(path);
+      } else {
+        selectedFiles.delete(path);
+      }
+      updateSelectedCount();
+      updateSelectAllState();
+    }
+
+    // 全选/取消全选
+    function toggleSelectAll() {
+      const selectAll = document.getElementById('selectAllCheckbox').checked;
+      const checkboxes = document.querySelectorAll('.file-checkbox');
+
+      checkboxes.forEach(cb => {
+        cb.checked = selectAll;
+        const path = cb.dataset.path;
+        if (selectAll) {
+          selectedFiles.add(path);
+        } else {
+          selectedFiles.delete(path);
+        }
+      });
+
+      updateSelectedCount();
+    }
+
+    // 更新全选状态
+    function updateSelectAllState() {
+      const checkboxes = document.querySelectorAll('.file-checkbox');
+      const checkedCount = document.querySelectorAll('.file-checkbox:checked').length;
+      const selectAllCb = document.getElementById('selectAllCheckbox');
+
+      if (selectAllCb) {
+        selectAllCb.checked = checkboxes.length > 0 && checkedCount === checkboxes.length;
+        selectAllCb.indeterminate = checkedCount > 0 && checkedCount < checkboxes.length;
+      }
+    }
+
+    // 更新选中数量显示
+    function updateSelectedCount() {
+      const count = selectedFiles.size;
+      const selectedCountEl = document.getElementById('selectedCount');
+      const selectedCountTextEl = document.getElementById('selectedCountText');
+      const downloadSelectedBtnEl = document.getElementById('downloadSelectedBtn');
+      if (selectedCountEl) selectedCountEl.textContent = count;
+      if (selectedCountTextEl) selectedCountTextEl.textContent = `已选择 ${count} 个文件`;
+      if (downloadSelectedBtnEl) downloadSelectedBtnEl.disabled = count === 0;
+    }
+
+    // 下载单个文件
+    function downloadSingleFile(filePath) {
+      window.location.href = `/api/shares/${currentShareCode}/download-file?filePath=${encodeURIComponent(filePath)}`;
+      showSuccess('下载已开始...');
+    }
+
+    // 下载选中的文件
+    async function downloadSelected() {
+      if (selectedFiles.size === 0) {
+        showError('请先选择要下载的文件');
+        return;
+      }
+
+      try {
+        // 创建表单提交下载
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/api/shares/${currentShareCode}/download-selected`;
+        form.style.display = 'none';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'files';
+        input.value = JSON.stringify(Array.from(selectedFiles));
+        form.appendChild(input);
+
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+
+        showSuccess('正在打包下载...');
+      } catch (error) {
+        console.error('下载失败:', error);
+        showError('下载失败，请重试');
+      }
+    }
+
+    // 下载全部文件
+    function downloadAll() {
+      window.location.href = `/api/shares/${currentShareCode}/download`;
+      showSuccess('正在打包下载全部文件...');
+    }
+
+    // 下载共享内容
+    function downloadShare() {
+      if (!currentShareCode) {
+        showError('共享码无效');
+        return;
+      }
+
+      // 直接跳转到下载链接
+      window.location.href = `/api/shares/${currentShareCode}/download`;
+
+      // 显示提示信息
+      showSuccess('下载已开始...');
+    }
+
+    // 重置页面
+    function resetPage() {
+      currentShareCode = '';
+      currentShareType = '';
+      currentPath = '';
+      selectedFiles.clear();
+      document.getElementById('shareCode').value = '';
+      document.getElementById('codeInputSection').classList.remove('hidden');
+      document.getElementById('shareInfoSection').classList.add('hidden');
+      document.getElementById('errorMessage').classList.add('hidden');
+      document.getElementById('successMessage').classList.add('hidden');
+      document.getElementById('descriptionSection').classList.add('hidden');
+      document.getElementById('expireItem').classList.add('hidden');
+      document.getElementById('fileListSection').classList.add('hidden');
+      document.getElementById('downloadAllBtn').classList.remove('hidden');
+    }
+
+    // 显示错误信息
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.textContent = message;
+      errorDiv.classList.remove('hidden');
+
+      setTimeout(() => {
+        errorDiv.classList.add('hidden');
+      }, 3000);
+    }
+
+    // 显示成功信息
+    function showSuccess(message) {
+      const successDiv = document.getElementById('successMessage');
+      successDiv.textContent = message;
+      successDiv.classList.remove('hidden');
+
+      setTimeout(() => {
+        successDiv.classList.add('hidden');
+      }, 3000);
+    }
+
+    // 回车键提交
+    document.getElementById('shareCode').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        verifyShareCode();
+      }
+    });
+  </script>
+</body>
+</html>

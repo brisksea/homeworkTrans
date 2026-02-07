@@ -1,0 +1,10 @@
+node_modules/
+uploads/
+resources/
+homework.db
+*.log
+.DS_Store
+.claude/
+nohup.out
+logs/
+teachers_whitelist.txt
