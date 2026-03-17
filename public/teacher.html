@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>教师端 - 作业上传系统</title>
+  <title>教师端 - 教学资源与作业管理平台</title>
   <style>
     * {
       margin: 0;
@@ -534,6 +534,9 @@
         </div>
         <button onclick="login()" style="width: 100%;">登录</button>
         <button onclick="showRegister()" style="width: 100%; margin-top: 10px;" class="secondary">注册新账号</button>
+        <p style="text-align: center; margin-top: 10px;">
+          <a href="/" style="color: #666; font-size: 14px;">返回首页</a>
+        </p>
       </div>
     </div>
   </div>
@@ -596,6 +599,7 @@
             <span class="user-name" id="teacherName"></span>
           </div>
           <button onclick="showChangePasswordModal()">修改密码</button>
+          <button onclick="window.location.href='/';" style="margin-top: 8px;">返回首页</button>
           <button onclick="logout()" style="margin-top: 8px; background: rgba(220,53,69,0.3);">退出登录</button>
         </div>
       </div>
@@ -1009,6 +1013,21 @@
     </div>
   </div>
 
+  <!-- 移动资源模态框 -->
+  <div id="moveResourceModal" class="modal">
+    <div class="modal-content" style="max-width: 560px;">
+      <h2>移动到</h2>
+      <p id="moveResourceSourceName" style="color: #555; margin: 0 0 12px;"></p>
+      <input type="hidden" id="moveResourceSourcePath">
+      <div id="moveResourceBreadcrumb" style="padding: 8px 12px; background: #f8f9fa; border-radius: 5px; margin-bottom: 10px; font-family: monospace; display: flex; align-items: center; gap: 5px; flex-wrap: wrap;"></div>
+      <div id="moveResourceDirList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px;"></div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="confirmMoveResource()">移动到此处</button>
+        <button onclick="closeModal('moveResourceModal')" class="secondary">取消</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 浏览服务器文件模态框 -->
   <div id="browseServerModal" class="modal">
     <div class="modal-content" style="max-width: 800px;">
@@ -1263,6 +1282,8 @@
 
     function displayClassShares(shares, classId) {
       const container = document.getElementById(`classSharesList-${classId}`);
+      const classInfo = allClasses.find(c => c.id === classId);
+      const className = classInfo ? classInfo.name : classId;
 
       if (shares.length === 0) {
         container.innerHTML = '<p style="color: #666; margin-top: 10px;">暂无共享资源，点击"添加共享资源"按钮共享文件给该班级</p>';
@@ -1273,25 +1294,32 @@
         <table>
           <thead>
             <tr>
+              <th>班级</th>
               <th>资源名称</th>
               <th>类型</th>
+              <th>路径</th>
               <th>说明</th>
               <th>共享时间</th>
               <th style="width: 80px;">操作</th>
             </tr>
           </thead>
           <tbody>
-            ${shares.map(s => `
+            ${shares.map(s => {
+              const pathText = formatResourcePath(s.resource_path, s.share_type);
+              return `
               <tr>
+                <td><span style="background: #e7f3ff; padding: 2px 8px; border-radius: 3px; font-size: 12px;">${className}</span></td>
                 <td>${s.share_name}</td>
                 <td>${s.share_type === 'directory' ? '文件夹' : '文件'}</td>
+                <td title="${pathText}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${pathText}</td>
                 <td>${s.description || '-'}</td>
                 <td>${new Date(s.created_at).toLocaleString('zh-CN')}</td>
                 <td>
                   <button onclick="deleteClassShare(${s.id}, ${classId})" class="danger" style="margin: 0; padding: 5px 10px; font-size: 12px;">删除</button>
                 </td>
               </tr>
-            `).join('')}
+              `;
+            }).join('')}
           </tbody>
         </table>
       `;
@@ -2268,6 +2296,19 @@
     }
 
     // 显示共享列表
+    // 格式化资源路径：去掉 teacher_X/ 前缀
+    function formatResourcePath(data, shareType) {
+      if (!data) return '-';
+      if (shareType === 'assignment') return '-';
+      if (shareType === 'multiple') {
+        try {
+          const paths = JSON.parse(data);
+          return paths.map(p => p.replace(/^teacher_\d+\/?/, '')).join(', ');
+        } catch(e) { return '-'; }
+      }
+      return data.replace(/^teacher_\d+\/?/, '') || '/';
+    }
+
     function displayShares(shares) {
       const container = document.getElementById('codeSharesList');
 
@@ -2289,6 +2330,7 @@
               <th>共享码</th>
               <th>类型</th>
               <th>名称</th>
+              <th>路径</th>
               <th>访问次数</th>
               <th>状态</th>
               <th>创建时间</th>
@@ -2310,12 +2352,14 @@
               const accessText = share.max_access > 0
                 ? `${share.access_count}/${share.max_access}`
                 : share.access_count;
+              const pathText = formatResourcePath(share.resource_data, share.share_type);
 
               return `
                 <tr>
                   <td><code style="font-weight: bold; letter-spacing: 1px;">${share.share_code}</code></td>
                   <td>${shareTypeText}</td>
                   <td>${share.share_name || '-'}</td>
+                  <td title="${pathText}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${pathText}</td>
                   <td>${accessText}</td>
                   <td>
                     <span class="status-badge ${statusClass}">${statusText}</span>
@@ -2553,10 +2597,14 @@
             <td>
               ${item.isDirectory
                 ? `<button onclick="showRenameResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">重命名</button>
+                   <button onclick="showMoveResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">移动</button>
+                   <button onclick="downloadResource('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">下载</button>
                    <button onclick="shareResourceToClass('directory', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">班级共享</button>
                    <button onclick="shareServerItem('directory', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">口令共享</button>
                    <button onclick="deleteResourceByPath('${escapedPath}')" class="danger" style="margin: 0; padding: 4px 8px; font-size: 12px;">删除</button>`
                 : `<button onclick="showRenameResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">重命名</button>
+                   <button onclick="showMoveResourceModal('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">移动</button>
+                   <button onclick="downloadResource('${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">下载</button>
                    <button onclick="shareResourceToClass('file', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">班级共享</button>
                    <button onclick="shareServerItem('file', '${escapedPath}', '${escapedName}')" class="secondary" style="margin: 0; padding: 4px 8px; font-size: 12px;">口令共享</button>
                    <button onclick="deleteResourceByPath('${escapedPath}')" class="danger" style="margin: 0; padding: 4px 8px; font-size: 12px;">删除</button>`
@@ -2670,6 +2718,16 @@
       alert('删除完成');
     }
 
+    function downloadResource(filePath, name) {
+      const url = '/api/resources/download?filePath=' + encodeURIComponent(filePath);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
     async function deleteResourceByPath(filePath, silent, forceDelete = false) {
       if (!silent && !forceDelete && !confirm('确定要删除这个文件吗？')) return;
       try {
@@ -2769,6 +2827,103 @@
         shareToClassId = parseInt(select.value);
         const cls = allClasses.find(c => c.id === shareToClassId);
         document.getElementById('shareToClassName').textContent = cls ? cls.name : '';
+      }
+    }
+
+    // 移动资源
+    let moveDestPath = '';
+
+    function showMoveResourceModal(sourcePath, sourceName) {
+      document.getElementById('moveResourceSourcePath').value = sourcePath;
+      document.getElementById('moveResourceSourceName').textContent = '移动：' + sourceName;
+      // 默认从当前目录开始浏览
+      moveDestPath = currentResourcePath;
+      document.getElementById('moveResourceModal').classList.add('active');
+      browseMoveDest(moveDestPath);
+    }
+
+    async function browseMoveDest(dirPath) {
+      moveDestPath = dirPath || '';
+
+      // 更新面包屑
+      const crumb = document.getElementById('moveResourceBreadcrumb');
+      let html = `<span onclick="browseMoveDest('')" style="cursor:pointer;color:#667eea;">根目录</span>`;
+      if (moveDestPath) {
+        const parts = moveDestPath.split('/').filter(p => p);
+        let accumulated = '';
+        parts.forEach((part, i) => {
+          accumulated += (accumulated ? '/' : '') + part;
+          const p = accumulated;
+          html += ` <span style="color:#999;">/</span> `;
+          if (i === parts.length - 1) {
+            html += `<span style="color:#333;font-weight:bold;">${part}</span>`;
+          } else {
+            html += `<span onclick="browseMoveDest('${p}')" style="cursor:pointer;color:#667eea;">${part}</span>`;
+          }
+        });
+      }
+      crumb.innerHTML = html;
+
+      // 加载子目录
+      try {
+        const resp = await fetch('/api/resources/browse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dirPath: moveDestPath })
+        });
+        const data = await resp.json();
+        const sourcePath = document.getElementById('moveResourceSourcePath').value;
+        const listEl = document.getElementById('moveResourceDirList');
+
+        // 只显示目录，且排除被移动项自身及其子目录
+        const dirs = (data.items || []).filter(item =>
+          item.isDirectory &&
+          item.path !== sourcePath &&
+          !item.path.startsWith(sourcePath + '/')
+        );
+
+        let rows = '';
+        if (moveDestPath) {
+          const parent = moveDestPath.includes('/')
+            ? moveDestPath.slice(0, moveDestPath.lastIndexOf('/'))
+            : '';
+          rows += `<div onclick="browseMoveDest('${parent}')"
+            style="padding:10px 15px;cursor:pointer;border-bottom:1px solid #eee;color:#667eea;">
+            &#x1F4C2; ..（返回上级）</div>`;
+        }
+        if (dirs.length === 0) {
+          rows += `<div style="padding:20px;text-align:center;color:#999;">（无子文件夹）</div>`;
+        } else {
+          dirs.forEach(dir => {
+            const ep = dir.path.replace(/'/g, "\\'");
+            rows += `<div onclick="browseMoveDest('${ep}')"
+              style="padding:10px 15px;cursor:pointer;border-bottom:1px solid #eee;">
+              &#x1F4C1; ${dir.name}</div>`;
+          });
+        }
+        listEl.innerHTML = rows;
+      } catch (e) {
+        console.error('浏览目录失败:', e);
+      }
+    }
+
+    async function confirmMoveResource() {
+      const sourcePath = document.getElementById('moveResourceSourcePath').value;
+      try {
+        const resp = await fetch('/api/resources/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourcePath, targetDir: moveDestPath })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          closeModal('moveResourceModal');
+          await browseResources(currentResourcePath);
+        } else {
+          alert('移动失败：' + data.message);
+        }
+      } catch (e) {
+        alert('移动失败');
       }
     }
 
@@ -2890,12 +3045,41 @@
 
       let successCount = 0;
       let failCount = 0;
+      let skipCount = 0;
 
       for (const file of files) {
+        // 上传前检查同名文件
+        let shouldOverwrite = false;
+        try {
+          const checkResponse = await fetch('/api/resources/check-file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              filename: file.name,
+              targetPath: currentResourcePath || ''
+            })
+          });
+          const checkData = await checkResponse.json();
+
+          if (checkData.exists) {
+            if (confirm(`文件 "${file.name}" 已存在，是否覆盖？`)) {
+              shouldOverwrite = true;
+            } else {
+              skipCount++;
+              continue;
+            }
+          }
+        } catch (error) {
+          console.error('检查文件失败:', file.name, error);
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         if (currentResourcePath) {
           formData.append('targetPath', currentResourcePath);
+        }
+        if (shouldOverwrite) {
+          formData.append('overwrite', 'true');
         }
 
         try {
@@ -2918,10 +3102,13 @@
       }
 
       closeModal('uploadResourceModal');
-      if (failCount === 0) {
+      if (failCount === 0 && skipCount === 0) {
         alert(`成功上传 ${successCount} 个文件`);
       } else {
-        alert(`上传完成：成功 ${successCount} 个，失败 ${failCount} 个`);
+        let msg = `上传完成：成功 ${successCount} 个`;
+        if (skipCount > 0) msg += `，跳过 ${skipCount} 个`;
+        if (failCount > 0) msg += `，失败 ${failCount} 个`;
+        alert(msg);
       }
       await browseResources(currentResourcePath);
     }
@@ -3301,24 +3488,29 @@
               <th>班级</th>
               <th>资源名称</th>
               <th>类型</th>
+              <th>路径</th>
               <th>说明</th>
               <th>共享时间</th>
               <th style="width: 80px;">操作</th>
             </tr>
           </thead>
           <tbody>
-            ${allShares.map(s => `
+            ${allShares.map(s => {
+              const pathText = formatResourcePath(s.resource_path, s.share_type);
+              return `
               <tr>
                 <td><span style="background: #e7f3ff; padding: 2px 8px; border-radius: 3px; font-size: 12px;">${s.className}</span></td>
                 <td>${s.share_name}</td>
                 <td>${s.share_type === 'directory' ? '文件夹' : '文件'}</td>
+                <td title="${pathText}" style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${pathText}</td>
                 <td>${s.description || '-'}</td>
                 <td>${new Date(s.created_at).toLocaleString('zh-CN')}</td>
                 <td>
                   <button onclick="deleteClassShareFromAll(${s.id})" class="danger" style="margin: 0; padding: 5px 10px; font-size: 12px;">删除</button>
                 </td>
               </tr>
-            `).join('')}
+              `;
+            }).join('')}
           </tbody>
         </table>
       `;

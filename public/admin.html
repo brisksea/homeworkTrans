@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理员端 - 作业上传系统</title>
+  <title>管理员端 - 教学资源与作业管理平台</title>
   <style>
     * {
       margin: 0;
@@ -278,6 +278,9 @@
         <input type="password" id="loginPassword" placeholder="请输入密码">
       </div>
       <button onclick="login()" style="width: 100%;">登录</button>
+      <p style="text-align: center; margin-top: 10px;">
+        <a href="/" style="color: #666; font-size: 14px;">返回首页</a>
+      </p>
     </div>
   </div>
 
@@ -289,6 +292,8 @@
           <h1>🛡️ 系统管理后台</h1>
           <div>
             <span id="adminName" style="margin-right: 20px; color: #666;"></span>
+            <button onclick="window.location.href='/';">返回首页</button>
+            <button onclick="showChangePasswordModal()">修改密码</button>
             <button onclick="logout()">退出登录</button>
           </div>
         </div>
@@ -358,6 +363,27 @@
       </p>
       <button onclick="confirmHardDeleteClass()" class="danger">确认彻底删除</button>
       <button onclick="closeModal('deleteClassModal')" class="secondary">取消</button>
+    </div>
+  </div>
+
+  <!-- 管理员修改密码模态框 -->
+  <div id="changePasswordModal" class="modal">
+    <div class="modal-content">
+      <h2>修改管理员密码</h2>
+      <div class="form-group">
+        <label>原密码</label>
+        <input type="password" id="adminOldPassword" placeholder="请输入原密码">
+      </div>
+      <div class="form-group">
+        <label>新密码</label>
+        <input type="password" id="adminNewPassword" placeholder="请输入新密码（至少6位）">
+      </div>
+      <div class="form-group">
+        <label>确认新密码</label>
+        <input type="password" id="adminConfirmPassword" placeholder="请再次输入新密码">
+      </div>
+      <button onclick="confirmChangePassword()">确认修改</button>
+      <button onclick="closeModal('changePasswordModal')" class="secondary">取消</button>
     </div>
   </div>
 
@@ -575,6 +601,54 @@
       } catch (error) {
         alert('删除失败，请重试');
         console.error('删除班级失败:', error);
+      }
+    }
+
+    function showChangePasswordModal() {
+      document.getElementById('adminOldPassword').value = '';
+      document.getElementById('adminNewPassword').value = '';
+      document.getElementById('adminConfirmPassword').value = '';
+      document.getElementById('changePasswordModal').classList.add('active');
+    }
+
+    async function confirmChangePassword() {
+      const oldPassword = document.getElementById('adminOldPassword').value.trim();
+      const newPassword = document.getElementById('adminNewPassword').value.trim();
+      const confirmPassword = document.getElementById('adminConfirmPassword').value.trim();
+
+      if (!oldPassword || !newPassword || !confirmPassword) {
+        alert('请填写所有信息');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        alert('新密码长度至少6位');
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        alert('两次输入的新密码不一致');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/admin/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ oldPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          alert('密码修改成功');
+          closeModal('changePasswordModal');
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        alert('修改密码失败，请重试');
+        console.error('修改密码失败:', error);
       }
     }
   </script>

@@ -10,7 +10,7 @@ const archiver = require('archiver');
 const XLSX = require('xlsx');
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 80;
 const HOST = '0.0.0.0'
 
 // 初始化数据库
@@ -307,6 +307,48 @@ app.post('/api/admin/reset-teacher-password', (req, res) => {
           return res.status(500).json({ success: false, message: '修改密码失败' });
         }
         res.json({ success: true, message: '密码重置成功' });
+      }
+    );
+  });
+});
+
+// 管理员修改密码
+app.post('/api/admin/change-password', (req, res) => {
+  if (!req.session.adminId) {
+    return res.status(401).json({ success: false, message: '请先登录' });
+  }
+
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword || !newPassword) {
+    return res.status(400).json({ success: false, message: '请填写所有信息' });
+  }
+
+  if (newPassword.length < 6) {
+    return res.json({ success: false, message: '新密码长度至少6位' });
+  }
+
+  db.get('SELECT * FROM admins WHERE id = ?', [req.session.adminId], (err, admin) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: '服务器错误' });
+    }
+
+    if (!admin) {
+      return res.json({ success: false, message: '用户不存在' });
+    }
+
+    if (!bcrypt.compareSync(oldPassword, admin.password)) {
+      return res.json({ success: false, message: '原密码错误' });
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    db.run('UPDATE admins SET password = ? WHERE id = ?',
+      [hashedPassword, req.session.adminId],
+      (err) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: '修改密码失败' });
+        }
+        res.json({ success: true, message: '密码修改成功' });
       }
     );
   });
@@ -2026,6 +2068,36 @@ const resourceStorage = multer.diskStorage({
 
 const resourceUpload = multer({ storage: resourceStorage });
 
+// 检查资源文件是否已存在
+app.post('/api/resources/check-file', (req, res) => {
+  if (!req.session.teacherId) {
+    return res.status(401).json({ success: false, message: '请先登录' });
+  }
+
+  const { filename, targetPath } = req.body;
+  if (!filename) {
+    return res.status(400).json({ success: false, message: '缺少文件名' });
+  }
+
+  const teacherDir = path.join(resourcesDir, `teacher_${req.session.teacherId}`);
+  let filePath;
+
+  if (targetPath && targetPath !== '/' && targetPath !== '') {
+    const cleanPath = targetPath.replace(/\.\./g, '');
+    filePath = path.join(teacherDir, cleanPath, filename);
+  } else {
+    filePath = path.join(teacherDir, filename);
+  }
+
+  const resolvedPath = path.resolve(filePath);
+  if (!resolvedPath.startsWith(path.resolve(teacherDir))) {
+    return res.status(403).json({ success: false, message: '路径不合法' });
+  }
+
+  const exists = fs.existsSync(filePath);
+  res.json({ exists });
+});
+
 // 上传教学资源
 app.post('/api/resources/upload', resourceUpload.single('file'), (req, res) => {
   if (!req.session.teacherId) {
@@ -2036,16 +2108,17 @@ app.post('/api/resources/upload', resourceUpload.single('file'), (req, res) => {
     return res.status(400).json({ success: false, message: '请选择文件' });
   }
 
-  const { targetPath } = req.body;
-  const teacherDir = path.join(resourcesDir, `teacher_${req.session.teacherId}`);
+  const { targetPath, overwrite } = req.body;
+  const teacherId = req.session.teacherId;
+  const teacherDir = path.join(resourcesDir, `teacher_${teacherId}`);
   const originalName = decodeFilename(req.file.originalname);
   const fileSize = req.file.size;
 
-  let filePath = path.join(`teacher_${req.session.teacherId}`, originalName);
+  // 计算最终的数据库路径和磁盘移动目标
+  let filePath = path.join(`teacher_${teacherId}`, originalName);
+  let moveTarget = null;
 
-  // 如果指定了目标路径（子目录），将文件移动过去
   if (targetPath && targetPath !== '/' && targetPath !== '') {
-    // 安全检查
     const cleanPath = targetPath.replace(/\.\./g, '');
     const targetDir = path.join(teacherDir, cleanPath);
     const resolvedTarget = path.resolve(targetDir);
@@ -2059,29 +2132,63 @@ app.post('/api/resources/upload', resourceUpload.single('file'), (req, res) => {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    const newPath = path.join(targetDir, originalName);
-    try {
-      fs.renameSync(req.file.path, newPath);
-      filePath = path.join(`teacher_${req.session.teacherId}`, cleanPath, originalName);
-    } catch (err) {
-      console.error('移动文件失败:', err);
-      return res.status(500).json({ success: false, message: '上传失败' });
-    }
+    moveTarget = path.join(targetDir, originalName);
+    filePath = path.join(`teacher_${teacherId}`, cleanPath, originalName);
   }
 
-  db.run(`INSERT INTO resources (teacher_id, resource_name, resource_type, file_path, file_size, is_folder)
-          VALUES (?, ?, ?, ?, ?, ?)`,
-    [req.session.teacherId, originalName, 'file', filePath, fileSize, 0],
-    function(err) {
+  // 检查数据库中是否已存在同路径的资源记录
+  db.get('SELECT id FROM resources WHERE teacher_id = ? AND file_path = ?',
+    [teacherId, filePath], (err, existing) => {
       if (err) {
-        console.error('记录资源失败:', err);
-        return res.status(500).json({ success: false, message: '上传失败' });
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
+        return res.status(500).json({ success: false, message: '检查失败' });
       }
-      res.json({
-        success: true,
-        resourceId: this.lastID,
-        message: '资源上传成功'
-      });
+
+      // 已存在且未确认覆盖，删除临时文件并返回提示
+      if (existing && overwrite !== 'true') {
+        try { fs.unlinkSync(req.file.path); } catch(e) {}
+        return res.json({ success: false, exists: true, message: '同名文件已存在' });
+      }
+
+      // 移动文件到目标子目录
+      if (moveTarget) {
+        try {
+          fs.renameSync(req.file.path, moveTarget);
+        } catch (moveErr) {
+          console.error('移动文件失败:', moveErr);
+          return res.status(500).json({ success: false, message: '上传失败' });
+        }
+      }
+
+      // 插入新记录
+      const insertRecord = () => {
+        db.run(`INSERT INTO resources (teacher_id, resource_name, resource_type, file_path, file_size, is_folder)
+                VALUES (?, ?, ?, ?, ?, ?)`,
+          [teacherId, originalName, 'file', filePath, fileSize, 0],
+          function(insertErr) {
+            if (insertErr) {
+              console.error('记录资源失败:', insertErr);
+              return res.status(500).json({ success: false, message: '上传失败' });
+            }
+            res.json({
+              success: true,
+              resourceId: this.lastID,
+              message: '资源上传成功'
+            });
+          }
+        );
+      };
+
+      // 覆盖模式：先删除旧的数据库记录
+      if (existing) {
+        db.run('DELETE FROM resources WHERE teacher_id = ? AND file_path = ?',
+          [teacherId, filePath], (delErr) => {
+            if (delErr) console.error('删除旧记录失败:', delErr);
+            insertRecord();
+          });
+      } else {
+        insertRecord();
+      }
     }
   );
 });
@@ -2289,6 +2396,138 @@ app.post('/api/resources/rename', (req, res) => {
   }
 });
 
+// 移动资源文件/文件夹
+app.post('/api/resources/move', (req, res) => {
+  if (!req.session.teacherId) {
+    return res.status(401).json({ success: false, message: '请先登录' });
+  }
+
+  const { sourcePath, targetDir } = req.body;
+
+  if (sourcePath === undefined || targetDir === undefined) {
+    return res.status(400).json({ success: false, message: '请提供源路径和目标目录' });
+  }
+
+  const tid = req.session.teacherId;
+  const teacherDir = path.join(resourcesDir, `teacher_${tid}`);
+  const sourceFullPath = path.join(teacherDir, sourcePath);
+  const resolvedSource = path.resolve(sourceFullPath);
+
+  if (!resolvedSource.startsWith(path.resolve(teacherDir))) {
+    return res.status(403).json({ success: false, message: '无权操作此路径' });
+  }
+
+  if (!fs.existsSync(sourceFullPath)) {
+    return res.status(404).json({ success: false, message: '源文件不存在' });
+  }
+
+  const targetFullDir = targetDir ? path.join(teacherDir, targetDir) : teacherDir;
+  const resolvedTargetDir = path.resolve(targetFullDir);
+
+  if (!resolvedTargetDir.startsWith(path.resolve(teacherDir))) {
+    return res.status(403).json({ success: false, message: '无权移动到此路径' });
+  }
+
+  // 不能将文件夹移动到自身或其子目录中
+  if (resolvedTargetDir === resolvedSource || resolvedTargetDir.startsWith(resolvedSource + path.sep)) {
+    return res.status(400).json({ success: false, message: '不能将文件夹移动到自身或其子目录中' });
+  }
+
+  // 已在目标目录中
+  if (path.resolve(path.dirname(sourceFullPath)) === resolvedTargetDir) {
+    return res.status(400).json({ success: false, message: '已在目标目录中' });
+  }
+
+  if (!fs.existsSync(targetFullDir)) {
+    return res.status(404).json({ success: false, message: '目标目录不存在' });
+  }
+
+  const itemName = path.basename(sourceFullPath);
+  const destFullPath = path.join(targetFullDir, itemName);
+
+  if (fs.existsSync(destFullPath)) {
+    return res.status(400).json({ success: false, message: `目标目录中已存在同名文件` });
+  }
+
+  try {
+    fs.renameSync(sourceFullPath, destFullPath);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: '移动失败: ' + error.message });
+  }
+
+  // 计算新旧 DB 路径（相对于 resourcesDir，使用正斜杠）
+  const oldDbPath = ('teacher_' + tid + '/' + sourcePath).replace(/\\/g, '/');
+  const newRelPath = targetDir ? (targetDir + '/' + itemName) : itemName;
+  const newDbPath = ('teacher_' + tid + '/' + newRelPath).replace(/\\/g, '/');
+
+  // 更新 resources 表（精确匹配）
+  db.run('UPDATE resources SET file_path = ?, resource_name = ? WHERE teacher_id = ? AND file_path = ?',
+    [newDbPath, itemName, tid, oldDbPath]);
+
+  // 更新 resources 表（目录子项）
+  db.all('SELECT id, file_path FROM resources WHERE teacher_id = ? AND file_path LIKE ?',
+    [tid, oldDbPath + '/%'], (err, rows) => {
+      if (!err && rows) {
+        rows.forEach(row => {
+          const updated = newDbPath + row.file_path.slice(oldDbPath.length);
+          db.run('UPDATE resources SET file_path = ? WHERE id = ?', [updated, row.id]);
+        });
+      }
+    });
+
+  // 更新口令共享（file/directory 类型）
+  db.all("SELECT id, resource_data FROM shares WHERE teacher_id = ? AND share_type IN ('file', 'directory')",
+    [tid], (err, shares) => {
+      if (!err && shares) {
+        shares.forEach(share => {
+          if (share.resource_data === oldDbPath) {
+            db.run('UPDATE shares SET resource_data = ? WHERE id = ?', [newDbPath, share.id]);
+          } else if (share.resource_data.startsWith(oldDbPath + '/')) {
+            const updated = newDbPath + share.resource_data.slice(oldDbPath.length);
+            db.run('UPDATE shares SET resource_data = ? WHERE id = ?', [updated, share.id]);
+          }
+        });
+      }
+    });
+
+  // 更新口令共享（multiple 类型，resource_data 为 JSON 数组）
+  db.all("SELECT id, resource_data FROM shares WHERE teacher_id = ? AND share_type = 'multiple'",
+    [tid], (err, shares) => {
+      if (!err && shares) {
+        shares.forEach(share => {
+          try {
+            const paths = JSON.parse(share.resource_data);
+            let changed = false;
+            const newPaths = paths.map(p => {
+              if (p === oldDbPath) { changed = true; return newDbPath; }
+              if (p.startsWith(oldDbPath + '/')) { changed = true; return newDbPath + p.slice(oldDbPath.length); }
+              return p;
+            });
+            if (changed) {
+              db.run('UPDATE shares SET resource_data = ? WHERE id = ?', [JSON.stringify(newPaths), share.id]);
+            }
+          } catch (e) {}
+        });
+      }
+    });
+
+  // 更新班级共享
+  db.all('SELECT id, resource_path FROM class_shares WHERE teacher_id = ?', [tid], (err, shares) => {
+    if (!err && shares) {
+      shares.forEach(share => {
+        if (share.resource_path === oldDbPath) {
+          db.run('UPDATE class_shares SET resource_path = ? WHERE id = ?', [newDbPath, share.id]);
+        } else if (share.resource_path.startsWith(oldDbPath + '/')) {
+          const updated = newDbPath + share.resource_path.slice(oldDbPath.length);
+          db.run('UPDATE class_shares SET resource_path = ? WHERE id = ?', [updated, share.id]);
+        }
+      });
+    }
+  });
+
+  res.json({ success: true, message: '移动成功' });
+});
+
 // 删除资源
 app.delete('/api/resources/:resourceId', (req, res) => {
   if (!req.session.teacherId) {
@@ -2426,6 +2665,53 @@ app.post('/api/resources/delete-by-path', (req, res) => {
       );
     }
   );
+});
+
+// 下载教学资源（单文件直接下载，目录打包ZIP）
+app.get('/api/resources/download', (req, res) => {
+  if (!req.session.teacherId) {
+    return res.status(401).json({ success: false, message: '请先登录' });
+  }
+
+  const { filePath } = req.query;
+
+  if (!filePath) {
+    return res.status(400).json({ success: false, message: '请提供文件路径' });
+  }
+
+  const teacherDir = path.join(resourcesDir, `teacher_${req.session.teacherId}`);
+  const fullPath = path.join(teacherDir, filePath);
+  const resolvedPath = path.resolve(fullPath);
+
+  if (!resolvedPath.startsWith(path.resolve(teacherDir))) {
+    return res.status(403).json({ success: false, message: '无权访问此文件' });
+  }
+
+  if (!fs.existsSync(fullPath)) {
+    return res.status(404).json({ success: false, message: '文件不存在' });
+  }
+
+  const stats = fs.statSync(fullPath);
+
+  if (stats.isDirectory()) {
+    const dirName = path.basename(fullPath);
+    const zipFilename = `${dirName}.zip`;
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(zipFilename)}"`);
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err) => {
+      console.error('压缩失败:', err);
+      res.status(500).end();
+    });
+    archive.pipe(res);
+    archive.directory(fullPath, dirName);
+    archive.finalize();
+  } else {
+    const filename = path.basename(fullPath);
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.sendFile(fullPath);
+  }
 });
 
 // ==================== 共享功能 API ====================
@@ -3122,7 +3408,7 @@ function getLocalIpAddress() {
 app.listen(PORT, '0.0.0.0', () => {
   const localIp = getLocalIpAddress();
   console.log('='.repeat(60));
-  console.log('📚 作业上传系统已启动');
+  console.log('📚 教学资源与作业管理平台已启动');
   console.log('='.repeat(60));
   console.log(`本地访问: http://localhost:${PORT}`);
   console.log(`远程访问: http://${localIp}:${PORT}`);

@@ -1,7 +1,7 @@
 {
   "name": "homework-upload-system",
   "version": "1.0.0",
-  "description": "学生作业上传系统",
+  "description": "教学资源与作业管理平台",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
